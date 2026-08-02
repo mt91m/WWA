@@ -1,429 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>جنگ جهانی حیوانات | پنل کشور</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div id="flag" class="text-2xl">🏳️</div>
-        <div>
-          <div class="font-black text-lg text-amber-400" id="countryName">پنل کشور</div>
-          <div class="text-xs text-slate-400" id="countryMeta">—</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="index.html" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خانه</a>
-        <button id="btn-logout" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خروج Auth</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
-    <!-- left: stats + select country -->
-    <aside class="space-y-4">
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">انتخاب کشور</h2>
-        <div class="mt-3 space-y-2">
-          <label class="block text-xs text-slate-400">username کشور</label>
-          <input id="country-username" type="text" placeholder="مثلاً: lions_empire"
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          <button id="btn-load-country"
-                  class="w-full rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-black px-3 py-2">
-            بارگذاری کشور
-          </button>
-          <div class="text-xs text-slate-500 leading-relaxed">
-            چون SQL شما به Auth وصل نیست، اینجا کشور را با username انتخاب می‌کنیم.
-          </div>
-        </div>
-      </section>
-
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">وضعیت کشور</h2>
-        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            <div class="text-xs text-slate-400">بودجه</div>
-            <div id="budget" class="text-emerald-300 font-black text-lg">$0.00</div>
-          </div>
-          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            <div class="text-xs text-slate-400">امتیاز</div>
-            <div id="points" class="text-amber-300 font-black text-lg">0</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">دارایی‌ها</h2>
-        <div id="assets" class="mt-3 space-y-2 text-sm"></div>
-      </section>
-    </aside>
-
-    <!-- center -->
-    <section class="lg:col-span-2 space-y-6">
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">📢 صدور بیانیه</h2>
-        <form id="form-statement" class="mt-3 space-y-2">
-          <input id="st-title" required placeholder="عنوان"
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          <textarea id="st-content" required rows="4" placeholder="متن بیانیه..."
-                    class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500"></textarea>
-          <button class="rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-black px-3 py-2">انتشار</button>
-        </form>
-      </section>
-
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">🛠️ ارسال سناریو به ادمین</h2>
-        <form id="form-scenario" class="mt-3 space-y-2">
-          <input id="sc-title" required placeholder="عنوان سناریو"
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          <textarea id="sc-desc" required rows="4" placeholder="توضیحات..."
-                    class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500"></textarea>
-          <button class="rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-black px-3 py-2">ارسال</button>
-        </form>
-
-        <div class="mt-4">
-          <h3 class="font-bold text-slate-200">سناریوهای من</h3>
-          <div id="my-scenarios" class="mt-2 space-y-2 text-sm"></div>
-        </div>
-      </section>
-
-      <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-amber-300">🛒 فروشگاه</h2>
-          <button id="btn-shop-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
-        </div>
-        <div id="shop" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-      </section>
-    </section>
-
-    <!-- right: admin chat -->
-    <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex flex-col h-[720px]">
-      <h2 class="font-bold text-amber-300">💬 چت با ادمین</h2>
-      <div id="chat" class="mt-3 flex-1 overflow-auto space-y-2 text-sm p-2 rounded-lg border border-slate-800 bg-slate-950/40"></div>
-      <form id="form-chat" class="mt-3 flex gap-2">
-        <input id="chat-msg" required placeholder="پیام..."
-               class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-        <button class="rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3 py-2">ارسال</button>
-      </form>
-    </section>
-  </main>
-
-  <script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const el = (id) => document.getElementById(id);
-    const LS_KEY = "wwa_country_username";
-
-    let country = null;
-
-    function escapeHtml(str) {
-      return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-    function fmtDate(x) { try { return new Date(x).toLocaleString("fa-IR"); } catch { return String(x); } }
-
-    async function logoutAuth() {
-      await sb.auth.signOut();
-      alert("خروج انجام شد.");
-    }
-    el("btn-logout").addEventListener("click", logoutAuth);
-
-    async function loadCountryByUsername(username) {
-      const u = username.trim();
-      if (!u) return;
-
-      const { data, error } = await sb
-        .from("countries")
-        .select("*")
-        .eq("username", u)
-        .single();
-
-      if (error) throw error;
-      country = data;
-
-      // cache
-      localStorage.setItem(LS_KEY, u);
-
-      // render header & stats
-      el("flag").textContent = country.flag_emoji || "🏳️";
-      el("countryName").textContent = country.name;
-      el("countryMeta").textContent = `@${country.username} | id: ${country.id}`;
-      await refreshCountryPanels();
-    }
-
-    async function refreshCountryPanels() {
-      if (!country) return;
-
-      // refresh country row (budget/points might change)
-      const { data: fresh, error } = await sb.from("countries").select("*").eq("id", country.id).single();
-      if (!error && fresh) country = fresh;
-
-      el("budget").textContent = `$${Number(country.budget ?? 0).toFixed(2)}`;
-      el("points").textContent = String(country.points ?? 0);
-
-      await loadAssets();
-      await loadShop();
-      await loadChat();
-      await loadMyScenarios();
-    }
-
-    async function loadAssets() {
-      const box = el("assets");
-      box.innerHTML = "";
-
-      const { data, error } = await sb
-        .from("country_assets")
-        .select("id,quantity, product_id, shop_products(name,type,cost)")
-        .eq("country_id", country.id);
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">دارایی‌ای ثبت نشده.</div>`;
-        return;
-      }
-
-      for (const a of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-2 flex items-center justify-between gap-2">
-            <div>
-              <div class="font-bold">${escapeHtml(a.shop_products?.name || "نامشخص")}</div>
-              <div class="text-xs text-slate-500">${escapeHtml(a.shop_products?.type || "")}</div>
-            </div>
-            <div class="font-black text-amber-300">x${a.quantity}</div>
-          </div>
-        `);
-      }
-    }
-
-    async function loadShop() {
-      const box = el("shop");
-      box.innerHTML = "";
-
-      const { data, error } = await sb
-        .from("shop_products")
-        .select("*")
-        .order("cost", { ascending: true });
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-sm">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-sm">محصولی وجود ندارد.</div>`;
-        return;
-      }
-
-      for (const p of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-            <div class="flex items-center justify-between">
-              <div class="font-black">${escapeHtml(p.name)}</div>
-              <div class="text-xs px-2 py-1 rounded-lg border border-slate-700 text-slate-300">${escapeHtml(p.type)}</div>
-            </div>
-            <div class="mt-2 text-xs text-slate-400">${escapeHtml(p.description || "")}</div>
-            <div class="mt-3 flex items-center justify-between gap-2">
-              <div class="font-black text-emerald-300">$${Number(p.cost).toFixed(2)}</div>
-              <button class="buy-btn rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-black px-3 py-2 text-sm"
-                      data-product="${p.id}">
-                خرید
-              </button>
-            </div>
-          </div>
-        `);
-      }
-
-      document.querySelectorAll(".buy-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const pid = btn.getAttribute("data-product");
-          const qtyStr = prompt("تعداد خرید؟", "1");
-          const qty = parseInt(qtyStr, 10);
-          if (!Number.isFinite(qty) || qty <= 0) return alert("تعداد نامعتبر");
-
-          const { data: res, error } = await sb.rpc("buy_product", {
-            p_country_id: country.id,
-            p_product_id: pid,
-            p_qty: qty
-          });
-
-          if (error) return alert("خطا: " + error.message);
-          if (!res?.success) return alert(res?.message || "خرید ناموفق");
-
-          alert(res.message);
-          await refreshCountryPanels();
-        });
-      });
-    }
-
-    async function loadChat() {
-      const box = el("chat");
-      box.innerHTML = "";
-
-      const { data, error } = await sb
-        .from("admin_chats")
-        .select("*")
-        .eq("country_id", country.id)
-        .order("created_at", { ascending: true })
-        .limit(200);
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">هنوز پیامی نیست.</div>`;
-        return;
-      }
-
-      for (const m of data) {
-        const isAdmin = m.sender_role === "admin";
-        box.insertAdjacentHTML("beforeend", `
-          <div class="flex ${isAdmin ? "justify-start" : "justify-end"}">
-            <div class="max-w-[85%] rounded-lg border ${isAdmin ? "border-amber-900/60 bg-amber-950/20 text-amber-100" : "border-sky-900/60 bg-sky-950/20 text-sky-100"} p-2">
-              <div class="text-[10px] text-slate-400 mb-1">${isAdmin ? "ادمین" : "شما"} • ${fmtDate(m.created_at)}</div>
-              <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(m.message)}</div>
-            </div>
-          </div>
-        `);
-      }
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function loadMyScenarios() {
-      const box = el("my-scenarios");
-      box.innerHTML = "";
-
-      const { data, error } = await sb
-        .from("scenarios")
-        .select("*")
-        .eq("country_id", country.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">سناریویی ثبت نکردی.</div>`;
-        return;
-      }
-
-      for (const s of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="font-black">${escapeHtml(s.title)}</div>
-              <div class="text-xs px-2 py-1 rounded-lg border border-slate-700">${escapeHtml(s.status)}</div>
-            </div>
-            <div class="text-xs text-slate-400 mt-1">${fmtDate(s.created_at)}</div>
-            <div class="text-sm mt-2 whitespace-pre-wrap">${escapeHtml(s.description)}</div>
-            ${s.admin_response ? `
-              <div class="mt-2 rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-2 text-sm">
-                <div class="text-xs text-emerald-300 font-bold mb-1">پاسخ ادمین:</div>
-                <div class="whitespace-pre-wrap">${escapeHtml(s.admin_response)}</div>
-              </div>
-            ` : ""}
-          </div>
-        `);
-      }
-    }
-
-    // forms
-    el("btn-load-country").addEventListener("click", async () => {
-      try {
-        const u = el("country-username").value;
-        await loadCountryByUsername(u);
-      } catch (e) {
-        alert(e?.message || "خطا در بارگذاری کشور");
-      }
-    });
-
-    el("form-statement").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!country) return alert("اول کشور را بارگذاری کن.");
-
-      const title = el("st-title").value.trim();
-      const content = el("st-content").value.trim();
-
-      const { error } = await sb.from("statements").insert({
-        country_id: country.id,
-        title,
-        content
-      });
-
-      if (error) return alert("خطا: " + error.message);
-      el("form-statement").reset();
-      alert("بیانیه ثبت شد.");
-    });
-
-    el("form-scenario").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!country) return alert("اول کشور را بارگذاری کن.");
-
-      const title = el("sc-title").value.trim();
-      const description = el("sc-desc").value.trim();
-
-      const { error } = await sb.from("scenarios").insert({
-        country_id: country.id,
-        title,
-        description,
-        status: "pending"
-      });
-
-      if (error) return alert("خطا: " + error.message);
-      el("form-scenario").reset();
-      alert("سناریو ارسال شد.");
-      await loadMyScenarios();
-    });
-
-    el("form-chat").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!country) return alert("اول کشور را بارگذاری کن.");
-
-      const message = el("chat-msg").value.trim();
-      if (!message) return;
-
-      const { error } = await sb.from("admin_chats").insert({
-        country_id: country.id,
-        message,
-        sender_role: "country"
-      });
-
-      if (error) return alert("خطا: " + error.message);
-      el("chat-msg").value = "";
-      await loadChat();
-    });
-
-    el("btn-shop-refresh").addEventListener("click", async () => {
-      if (!country) return alert("اول کشور را بارگذاری کن.");
-      await loadShop();
-    });
-
-    // init: try restore last selected country
-    (async () => {
-      const last = localStorage.getItem(LS_KEY);
-      if (last) {
-        el("country-username").value = last;
-        try { await loadCountryByUsername(last); } catch {}
-      }
-    })();
-
-    // auto refresh chat
-    setInterval(() => { if (country) loadChat(); }, 5000);
-  </script>
-</body>
-</html>
+    <meta charset="UTF-8">
+    <title>داشبورد کشور</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #2b3e50;
+            --accent: #e74c3c;
+            --bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text: #2f3640;
+        }
+        body {
+            font-family: Tahoma, Geneva, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logout-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .nav-tabs {
+            display: flex;
+            background: var(--primary);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        input, textarea, button, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .chat-box {
+            height: 300px;
+            border: 1px solid #ddd;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        .chat-msg {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            max-width: 80%;
+        }
+        .chat-msg.me {
+            background: #dcdde1;
+            margin-right: auto;
+            text-align: left;
+        }
+        .chat-msg.othe
