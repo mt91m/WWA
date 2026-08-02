@@ -1,358 +1,403 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>جنگ جهانی حیوانات | ورود</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <title>جنگ جهانی حیوانات - صفحه اصلی</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #2b3e50;
+            --accent: #e74c3c;
+            --bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text: #2f3640;
+        }
+        body {
+            font-family: Tahoma, Geneva, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .login-btn {
+            position: absolute;
+            left: 20px;
+            top: 25px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .nav-tabs {
+            display: flex;
+            background: var(--primary);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .card img {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div class="text-2xl">🐾</div>
-        <div>
-          <div class="font-black text-lg text-amber-400">جنگ جهانی حیوانات</div>
-          <div class="text-xs text-slate-400">خانه / ورود</div>
-        </div>
-      </div>
-      <div id="header-actions" class="flex items-center gap-2"></div>
+<body>
+
+<header>
+    <h1>جنگ جهانی حیوانات 🐾</h1>
+    <button class="login-btn" onclick="openLoginModal()">ورود به پنل کاربری</button>
+</header>
+
+<div class="container">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('countriesTab')">کشورها</button>
+        <button class="tab-btn" onclick="switchTab('statementsTab')">بیانیه‌ها</button>
+        <button class="tab-btn" onclick="switchTab('newsTab')">اخبار جهان</button>
+        <button class="tab-btn" onclick="switchTab('rankTab')">جدول رده‌بندی</button>
+        <button class="tab-btn" onclick="switchTab('shopTab')">فروشگاه نظامی</button>
     </div>
-  </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Auth card -->
-    <section class="lg:col-span-1 rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <div class="flex items-center justify-between">
-        <h2 class="font-bold text-amber-300">ورود / ثبت‌نام</h2>
-        <button id="toggle-mode" class="text-xs text-slate-300 hover:text-white underline">ثبت‌نام</button>
-      </div>
+    <!-- تب کشورها -->
+    <div id="countriesTab" class="tab-content active">
+        <h2>لیست کشورهای عضو</h2>
+        <div id="countriesList" class="grid"></div>
+    </div>
 
-      <div id="auth-logged-in" class="hidden mt-4 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-        <div class="text-sm text-emerald-400 font-bold">وارد شده‌ای!</div>
-        <div class="text-xs text-slate-400 mt-1" id="whoami"></div>
-        <div class="mt-3 flex flex-col gap-2">
-          <a class="w-full text-center rounded-lg bg-sky-600 hover:bg-sky-500 px-3 py-2 font-bold"
-             href="country.html">رفتن به پنل کشور</a>
-          <a class="w-full text-center rounded-lg bg-rose-700 hover:bg-rose-600 px-3 py-2 font-bold"
-             href="admin.html">پنل ادمین</a>
-          <button id="btn-logout" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">
-            خروج
-          </button>
-        </div>
-      </div>
+    <!-- تب بیانیه‌ها -->
+    <div id="statementsTab" class="tab-content">
+        <h2>آخرین بیانیه‌های صادر شده</h2>
+        <div id="statementsList" class="grid"></div>
+    </div>
 
-      <form id="auth-form" class="mt-4 space-y-3">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">ایمیل</label>
-          <input id="email" type="email" required
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">رمز عبور</label>
-          <input id="password" type="password" required
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-        </div>
+    <!-- تب اخبار -->
+    <div id="newsTab" class="tab-content">
+        <h2>اخبار رسمی جهان</h2>
+        <div id="newsList" class="grid"></div>
+    </div>
 
-        <!-- Register-only -->
-        <div id="register-fields" class="hidden space-y-3 pt-2 border-t border-slate-800">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">نام کشور</label>
-            <input id="country_name" type="text" placeholder="مثلاً: امپراتوری شیرها"
-                   class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">نام کاربری کشور</label>
-            <input id="country_username" type="text" placeholder="مثلاً: lions_empire"
-                   class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">پرچم (ایموجی)</label>
-            <input id="country_flag" type="text" placeholder="🦁"
-                   class="w-full text-center text-xl rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-amber-500" />
-          </div>
-
-          <div class="rounded-lg border border-amber-900/60 bg-amber-950/30 p-3 text-xs text-amber-200 leading-relaxed">
-            نکته: در SQL شما ارتباطی بین <code>auth.users</code> و <code>countries</code> نیست؛
-            بنابراین ما کشور را با «ایمیل» لینک می‌کنیم و داخل <code>password_hash</code> مقدار ثابت می‌گذاریم.
-          </div>
-        </div>
-
-        <button id="btn-submit" type="submit"
-                class="w-full rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-black px-3 py-2">
-          ورود
-        </button>
-
-        <div class="text-xs text-slate-400">
-          اگر Email confirmation روشن باشد، باید ایمیل را تایید کنی.
-        </div>
-      </form>
-    </section>
-
-    <!-- Public dashboard -->
-    <section class="lg:col-span-2 space-y-6">
-      <!-- Leaderboard -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-amber-300">🏆 رده‌بندی کشورها</h2>
-          <button id="btn-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
-        </div>
-        <div class="mt-4 overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="text-slate-400">
-              <tr class="border-b border-slate-800">
-                <th class="text-right py-2">رتبه</th>
-                <th class="text-right py-2">کشور</th>
-                <th class="text-center py-2">امتیاز</th>
-                <th class="text-center py-2">بودجه</th>
-              </tr>
+    <!-- تب رتبه‌بندی -->
+    <div id="rankTab" class="tab-content">
+        <h2>رتبه‌بندی نهایی کشورها</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>رتبه</th>
+                    <th>پرچم</th>
+                    <th>نام کشور</th>
+                    <th>امتیاز کل</th>
+                    <th>بودجه اقتصادی</th>
+                </tr>
             </thead>
-            <tbody id="tb-countries"></tbody>
-          </table>
-        </div>
-      </div>
+            <tbody id="rankBody"></tbody>
+        </table>
+    </div>
 
-      <!-- Statements -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">📢 آخرین بیانیه‌ها</h2>
-        <div id="list-statements" class="mt-4 space-y-3"></div>
-      </div>
+    <!-- تب فروشگاه -->
+    <div id="shopTab" class="tab-content">
+        <h2>محصولات در دسترس فروشگاه</h2>
+        <div id="shopProducts" class="grid"></div>
+    </div>
+</div>
 
-      <!-- News -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 class="font-bold text-amber-300">📰 اخبار</h2>
-        <div id="list-news" class="mt-4 space-y-3"></div>
-      </div>
-    </section>
-  </main>
+<!-- مودال ورود -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+        <h3>ورود به پنل کاربری</h3>
+        <label for="loginUsername">نام کاربری:</label>
+        <input type="text" id="loginUsername" placeholder="مثال: iran_tiger">
+        
+        <label for="loginPassword">رمز عبور:</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+        
+        <button class="btn-submit" onclick="login()">ورود</button>
+    </div>
+</div>
 
-  <script>
-    // ====== CONFIG ======
+<script>
+    // تنظیمات اتصال به Supabase
     const SUPABASE_URL = "YOUR_SUPABASE_URL";
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ====== UI state ======
-    let mode = "login"; // login | register
-    const el = (id) => document.getElementById(id);
+    const { createClient } = window.supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function setMode(next) {
-      mode = next;
-      el("register-fields").classList.toggle("hidden", mode !== "register");
-      el("btn-submit").textContent = mode === "login" ? "ورود" : "ثبت‌نام + ساخت کشور";
-      el("toggle-mode").textContent = mode === "login" ? "ثبت‌نام" : "ورود";
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
     }
 
-    el("toggle-mode").addEventListener("click", () => {
-      setMode(mode === "login" ? "register" : "login");
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
     });
 
-    async function refreshSessionUI() {
-      const { data: { session } } = await sb.auth.getSession();
-      const header = el("header-actions");
-
-      if (session) {
-        el("auth-form").classList.add("hidden");
-        el("auth-logged-in").classList.remove("hidden");
-        el("whoami").textContent = `ایمیل: ${session.user.email}`;
-        header.innerHTML = `
-          <a href="country.html" class="rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-black px-3 py-2 text-sm">پنل کشور</a>
-          <button id="header-logout" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خروج</button>
-        `;
-        document.getElementById("header-logout").onclick = logout;
-      } else {
-        el("auth-form").classList.remove("hidden");
-        el("auth-logged-in").classList.add("hidden");
-        header.innerHTML = `
-          <a href="country.html" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">پنل کشور</a>
-        `;
-      }
+    async function loadData() {
+        await Promise.all([
+            renderCountries(),
+            renderStatements(),
+            renderNews(),
+            renderRanking(),
+            renderShop()
+        ]);
     }
 
-    async function logout() {
-      await sb.auth.signOut();
-      await refreshSessionUI();
+    async function renderCountries() {
+        const { data: list, error } = await client.from('countries').select('*').order('name');
+        const container = document.getElementById("countriesList");
+        if (error || !list) {
+            container.innerHTML = "<p>خطا در بارگذاری اطلاعات کشورها.</p>";
+            return;
+        }
+        container.innerHTML = list.map(c => `
+            <div class="card">
+                <h3>${escapeHTML(c.flag_emoji)} ${escapeHTML(c.name)}</h3>
+                <p>وضعیت: <strong>${escapeHTML(c.status)}</strong></p>
+                <p>امتیاز: ${c.points}</p>
+            </div>
+        `).join('');
     }
-    el("btn-logout").addEventListener("click", logout);
 
-    // ====== Auth submit ======
-    el("auth-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = el("email").value.trim();
-      const password = el("password").value;
+    async function renderStatements() {
+        const { data: list, error } = await client
+            .from('statements')
+            .select('*, countries(name, flag_emoji)')
+            .order('created_at', { ascending: false });
 
-      try {
-        if (mode === "login") {
-          const { error } = await sb.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          await refreshSessionUI();
-          return;
+        const container = document.getElementById("statementsList");
+        if (error || !list) {
+            container.innerHTML = "<p>خطا در بارگذاری بیانیه‌ها.</p>";
+            return;
+        }
+        container.innerHTML = list.map(s => {
+            const countryName = s.countries ? s.countries.name : 'نامشخص';
+            const countryFlag = s.countries ? s.countries.flag_emoji : '🏳️';
+            const tagsHtml = s.tags ? s.tags.map(t => `<span style="background:#eee; padding:2px 6px; border-radius:3px; margin-left:5px; font-size:12px;">#${escapeHTML(t)}</span>`).join('') : '';
+            return `
+                <div class="card">
+                    <h4>${escapeHTML(s.title)}</h4>
+                    <p style="font-size:12px; color:#777;">صادرکننده: ${escapeHTML(countryFlag)} ${escapeHTML(countryName)}</p>
+                    <p>${escapeHTML(s.content)}</p>
+                    ${s.image_url ? `<img src="${escapeHTML(s.image_url)}" alt="Statement Image">` : ''}
+                    <div style="margin-top:10px;">${tagsHtml}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function renderNews() {
+        const { data: list, error } = await client.from('news').select('*').order('created_at', { ascending: false });
+        const container = document.getElementById("newsList");
+        if (error || !list) {
+            container.innerHTML = "<p>خطا در بارگذاری اخبار.</p>";
+            return;
+        }
+        container.innerHTML = list.map(n => `
+            <div class="card" style="border-left: 4px solid var(--accent);">
+                <h4>${escapeHTML(n.title)}</h4>
+                <p>${escapeHTML(n.content)}</p>
+                ${n.image_url ? `<img src="${escapeHTML(n.image_url)}" alt="News Image">` : ''}
+            </div>
+        `).join('');
+    }
+
+    async function renderRanking() {
+        const { data: list, error } = await client.from('countries').select('*').order('points', { ascending: false });
+        const body = document.getElementById("rankBody");
+        if (error || !list) {
+            body.innerHTML = "<tr><td colspan='5'>خطا در بارگذاری جدول رده‌بندی</td></tr>";
+            return;
+        }
+        body.innerHTML = list.map((c, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${escapeHTML(c.flag_emoji)}</td>
+                <td>${escapeHTML(c.name)}</td>
+                <td>${c.points}</td>
+                <td>$${Number(c.budget).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    async function renderShop() {
+        const { data: list, error } = await client.from('shop_products').select('*').order('cost');
+        const container = document.getElementById("shopProducts");
+        if (error || !list) {
+            container.innerHTML = "<p>خطا در بارگذاری محصولات فروشگاه.</p>";
+            return;
+        }
+        container.innerHTML = list.map(p => `
+            <div class="card">
+                <h4>${escapeHTML(p.name)}</h4>
+                <p>دسته‌بندی: ${escapeHTML(p.type)}</p>
+                <p>قیمت: <strong>$${Number(p.cost).toLocaleString()}</strong></p>
+                <p style="font-size:12px; color:#666;">${escapeHTML(p.description || '')}</p>
+            </div>
+        `).join('');
+    }
+
+    function openLoginModal() {
+        document.getElementById("loginModal").style.display = "flex";
+    }
+
+    function closeLoginModal() {
+        document.getElementById("loginModal").style.display = "none";
+    }
+
+    async function login() {
+        const userVal = document.getElementById("loginUsername").value.trim();
+        const passVal = document.getElementById("loginPassword").value.trim();
+
+        if (!userVal || !passVal) {
+            alert("لطفاً تمامی فیلدها را پر کنید.");
+            return;
         }
 
-        // register
-        const country_name = el("country_name").value.trim();
-        const country_username = el("country_username").value.trim();
-        const flag_emoji = (el("country_flag").value || "🏳️").trim();
-
-        if (!country_name || !country_username) {
-          alert("نام کشور و نام کاربری را کامل کن.");
-          return;
-        }
-
-        // 1) create auth user
-        const { data, error: e1 } = await sb.auth.signUp({ email, password });
-        if (e1) throw e1;
-
-        // 2) insert country row (IMPORTANT: your SQL has no auth_user_id, so we store email inside username uniqueness is separate)
-        // We cannot store email column because it doesn't exist; we will store email inside tags? no.
-        // Best we can do: keep country.username independent and later, in country.html, user selects their country by username.
-        // But user asked "how to add player"; simplest: on register we create country row immediately.
-        const { error: e2 } = await sb.from("countries").insert({
-          name: country_name,
-          username: country_username,
-          password_hash: "auth_managed",
-          flag_emoji,
-          // budget/points default in SQL
+        // بررسی ورود ادمین با ایمیل پیش‌فرض یا بررسی هویت کلی
+        const email = userVal.includes("@") ? userVal : `${userVal}@worldwar.local`;
+        
+        const { data, error } = await client.auth.signInWithPassword({
+            email: email,
+            password: passVal
         });
-        if (e2) throw e2;
 
-        alert("ثبت‌نام انجام شد. اگر تایید ایمیل روشن است، ایمیل را تایید کن و بعد وارد شو.");
-        setMode("login");
-      } catch (err) {
-        alert(err?.message || "خطای نامشخص");
-      }
-    });
+        if (error) {
+            alert("خطا در احراز هویت: " + error.message);
+            return;
+        }
 
-    // ====== Public data loaders ======
-    async function loadCountries() {
-      const { data, error } = await sb
-        .from("countries")
-        .select("id,name,flag_emoji,budget,points,status,created_at")
-        .order("points", { ascending: false })
-        .limit(50);
+        const user = data.user;
+        // بررسی اینکه آیا کاربر ادمین است
+        const { data: adminCheck } = await client.from('app_admins').select('*').eq('user_id', user.id).maybeSingle();
 
-      const tb = el("tb-countries");
-      tb.innerHTML = "";
-
-      if (error) {
-        tb.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-rose-400">${error.message}</td></tr>`;
-        return;
-      }
-      if (!data?.length) {
-        tb.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">هیچ کشوری ثبت نشده.</td></tr>`;
-        return;
-      }
-
-      data.forEach((c, i) => {
-        tb.insertAdjacentHTML("beforeend", `
-          <tr class="border-b border-slate-800 hover:bg-slate-900/60">
-            <td class="py-2">${i + 1}</td>
-            <td class="py-2">
-              <span class="text-lg">${c.flag_emoji || "🏳️"}</span>
-              <span class="font-bold">${escapeHtml(c.name)}</span>
-              <span class="text-xs text-slate-500">(@${escapeHtml(c.username)})</span>
-            </td>
-            <td class="py-2 text-center text-amber-300 font-black">${c.points ?? 0}</td>
-            <td class="py-2 text-center text-emerald-300 font-black">$${Number(c.budget ?? 0).toFixed(2)}</td>
-          </tr>
-        `);
-      });
+        if (adminCheck) {
+            window.location.href = "admin.html";
+        } else {
+            // بررسی اینکه آیا کشور است
+            const { data: countryCheck } = await client.from('countries').select('*').eq('auth_user_id', user.id).maybeSingle();
+            if (countryCheck) {
+                window.location.href = "country.html";
+            } else {
+                alert("حساب کاربری شما به هیچ کشوری متصل نیست.");
+                await client.auth.signOut();
+            }
+        }
     }
 
-    async function loadStatements() {
-      const { data, error } = await sb
-        .from("statements")
-        .select("id,title,content,created_at,country_id, countries(name,flag_emoji,username)")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      const box = el("list-statements");
-      box.innerHTML = "";
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-sm">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-sm">بیانیه‌ای وجود ندارد.</div>`;
-        return;
-      }
-
-      for (const s of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <article class="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
-            <div class="flex items-center justify-between gap-3">
-              <div class="text-sm font-bold text-amber-200">
-                <span class="text-lg">${s.countries?.flag_emoji || "🏳️"}</span>
-                ${escapeHtml(s.countries?.name || "ناشناس")}
-                <span class="text-xs text-slate-500">(@${escapeHtml(s.countries?.username || "-")})</span>
-              </div>
-              <div class="text-xs text-slate-500">${fmtDate(s.created_at)}</div>
-            </div>
-            <h3 class="mt-2 font-black">${escapeHtml(s.title)}</h3>
-            <p class="mt-2 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(s.content)}</p>
-          </article>
-        `);
-      }
+    function switchTab(tabId) {
+        document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+        
+        document.getElementById(tabId).classList.add("active");
+        event.currentTarget.classList.add("active");
     }
-
-    async function loadNews() {
-      const { data, error } = await sb
-        .from("news")
-        .select("id,title,content,created_at")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      const box = el("list-news");
-      box.innerHTML = "";
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-sm">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-sm">خبری وجود ندارد.</div>`;
-        return;
-      }
-
-      for (const n of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <article class="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
-            <div class="flex items-center justify-between gap-3">
-              <h3 class="font-black text-amber-200">${escapeHtml(n.title)}</h3>
-              <div class="text-xs text-slate-500">${fmtDate(n.created_at)}</div>
-            </div>
-            <p class="mt-2 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(n.content)}</p>
-          </article>
-        `);
-      }
-    }
-
-    function fmtDate(x) {
-      try { return new Date(x).toLocaleString("fa-IR"); } catch { return String(x); }
-    }
-    function escapeHtml(str) {
-      return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    el("btn-refresh").addEventListener("click", async () => {
-      await loadCountries();
-      await loadStatements();
-      await loadNews();
-    });
-
-    // init
-    setMode("login");
-    refreshSessionUI();
-    loadCountries();
-    loadStatements();
-    loadNews();
-  </script>
+</script>
 </body>
 </html>
