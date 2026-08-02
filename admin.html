@@ -1,340 +1,571 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>جنگ جهانی حیوانات | پنل ادمین</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <title>پنل مدیریت کل سیستم</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1e272e;
+            --accent: #e74c3c;
+            --bg: #f1f2f6;
+            --card-bg: #ffffff;
+            --text: #2f3640;
+        }
+        body {
+            font-family: Tahoma, Geneva, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logout-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .nav-tabs {
+            display: flex;
+            background: var(--primary);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid-admin {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        input, select, button, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-delete {
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background: var(--primary);
+            color: white;
+        }
+        .chat-box {
+            height: 250px;
+            border: 1px solid #ddd;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+        .chat-msg {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            max-width: 85%;
+        }
+        .chat-msg.me {
+            background: #dcdde1;
+            margin-right: auto;
+            text-align: left;
+        }
+        .chat-msg.other {
+            background: #eccc68;
+            margin-left: auto;
+            text-align: right;
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div class="text-2xl">🛡️</div>
-        <div>
-          <div class="font-black text-lg text-rose-400">پنل ادمین</div>
-          <div class="text-xs text-slate-400">مدیریت سناریوها / اخبار / چت</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="index.html" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خانه</a>
-        <button id="btn-admin-logout" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خروج ادمین</button>
-      </div>
+<body>
+
+<header>
+    <h2>🛡️ پنل مدیریت ارشد جنگ جهانی حیوانات</h2>
+    <button class="logout-btn" onclick="logout()">خروج از حساب</button>
+</header>
+
+<div class="container">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('countriesTab')">مدیریت کشورها</button>
+        <button class="tab-btn" onclick="switchTab('newsTab')">مدیریت اخبار جهانی</button>
+        <button class="tab-btn" onclick="switchTab('statementsTab')">مدیریت بیانیه‌ها</button>
     </div>
-  </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-8">
-    <!-- admin lock -->
-    <section id="lock" class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 max-w-md mx-auto">
-      <h2 class="font-black text-rose-300">ورود ادمین (محلی)</h2>
-      <p class="text-xs text-slate-400 mt-1">این سیستم به Auth وصل نیست. فقط برای کنترل ساده.</p>
-      <form id="form-lock" class="mt-4 space-y-2">
-        <input id="admin-pass" type="password" placeholder="رمز ادمین"
-               class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
-        <button class="w-full rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2">ورود</button>
-      </form>
-      <div class="mt-3 text-xs text-slate-500">
-        رمز پیش‌فرض داخل کد: <code>admin123</code>
-      </div>
-    </section>
+    <!-- تب مدیریت کشورها -->
+    <div id="countriesTab" class="tab-content active">
+        <div class="grid-admin">
+            <div>
+                <h3>لیست کشورها</h3>
+                <div id="countriesList"></div>
+            </div>
+            
+            <div id="countryDetailsPanel" style="display:none;">
+                <h3 id="panelCountryTitle">جزئیات کشور</h3>
+                <div class="card">
+                    <h4>تنظیمات اقتصادی و امتیازی</h4>
+                    <label>بودجه نقدی:</label>
+                    <input type="number" id="editBudget">
+                    
+                    <label>امتیاز کشور:</label>
+                    <input type="number" id="editPoints">
+                    
+                    <label>وضعیت رسمی:</label>
+                    <input type="text" id="editStatus">
+                    
+                    <button class="btn-submit" onclick="saveCountryInfo()">ذخیره اطلاعات اصلی</button>
+                </div>
 
-    <!-- dashboard -->
-    <section id="dash" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- news -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
-        <h2 class="font-bold text-rose-300">📰 انتشار خبر</h2>
-        <form id="form-news" class="space-y-2">
-          <input id="news-title" required placeholder="عنوان خبر"
-                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
-          <textarea id="news-content" required rows="4" placeholder="متن خبر..."
-                    class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500"></textarea>
-          <button class="rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2 w-full">ثبت خبر</button>
-        </form>
+                <div class="card">
+                    <h4>مدیریت درآمدهای ثابت روزانه</h4>
+                    <ul id="adminIncomesList"></ul>
+                    <h5>ثبت درآمد جدید:</h5>
+                    <input type="text" id="newIncomeSource" placeholder="منبع درآمد (مثال: چاه نفت شماره ۳)">
+                    <input type="number" id="newIncomeAmount" placeholder="مبلغ درآمد روزانه">
+                    <button class="btn-submit" onclick="addIncome()">افزودن درآمد روزانه</button>
+                </div>
 
-        <div class="pt-3 border-t border-slate-800">
-          <div class="flex items-center justify-between">
-            <h3 class="font-bold text-slate-200">آخرین اخبار</h3>
-            <button id="btn-news-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
-          </div>
-          <div id="news-list" class="mt-3 space-y-2 text-sm"></div>
+                <div class="card">
+                    <h4>مدیریت تجهیزات و دارایی‌ها</h4>
+                    <ul id="adminAssetsList"></ul>
+                    <h5>تغییر دارایی:</h5>
+                    <select id="assetProductSelect"></select>
+                    <input type="number" id="assetQty" placeholder="تعداد جدید دارایی">
+                    <button class="btn-submit" onclick="setAsset()">بروزرسانی تجهیزات</button>
+                </div>
+
+                <div class="card">
+                    <h4>بررسی سناریوهای دریافتی کشور</h4>
+                    <div id="adminScenariosList"></div>
+                </div>
+
+                <div class="card">
+                    <h4>چت مستقیم ادمین با این کشور</h4>
+                    <div id="adminChatBox" class="chat-box"></div>
+                    <div style="display:flex;">
+                        <input type="text" id="adminMsgInput" placeholder="پیام خود را بنویسید...">
+                        <button class="btn-submit" style="width:100px; margin-right:10px;" onclick="sendChatToCountry()">ارسال</button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <!-- scenarios -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-rose-300">⚙️ سناریوها</h2>
-          <button id="btn-scenarios-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
+    <!-- تب مدیریت اخبار -->
+    <div id="newsTab" class="tab-content">
+        <div class="grid-admin">
+            <div>
+                <h3>انتشار خبر فوری جدید</h3>
+                <div class="card">
+                    <input type="text" id="newsTitle" placeholder="عنوان خبر">
+                    <textarea id="newsContent" rows="5" placeholder="شرح کامل رویدادهای جهانی..."></textarea>
+                    <input type="text" id="newsImage" placeholder="آدرس تصویر خبر (اختیاری)">
+                    <button class="btn-submit" onclick="publishNews()">انتشار خبر در کل جهان</button>
+                </div>
+            </div>
+            <div>
+                <h3>اخبار منتشر شده قبلی</h3>
+                <div id="newsList"></div>
+            </div>
         </div>
-        <div id="scenarios-list" class="mt-4 space-y-3 text-sm"></div>
-      </div>
+    </div>
 
-      <!-- admin chats -->
-      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex flex-col h-[720px]">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-rose-300">💬 چت کشورها</h2>
-          <button id="btn-chat-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
-        </div>
+    <!-- تب مدیریت بیانیه‌ها -->
+    <div id="statementsTab" class="tab-content">
+        <h3>نظارت بر بیانیه‌های منتشر شده عمومی</h3>
+        <div id="statementsList" class="grid-admin"></div>
+    </div>
+</div>
 
-        <div class="mt-3">
-          <label class="block text-xs text-slate-400 mb-1">انتخاب کشور</label>
-          <select id="country-select" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500">
-            <option value="">— انتخاب —</option>
-          </select>
-        </div>
-
-        <div id="chat-box" class="mt-3 flex-1 overflow-auto space-y-2 text-sm p-2 rounded-lg border border-slate-800 bg-slate-950/40"></div>
-
-        <form id="form-chat" class="mt-3 flex gap-2">
-          <input id="chat-msg" required placeholder="پاسخ ادمین..."
-                 class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
-          <button class="rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2">ارسال</button>
-        </form>
-      </div>
-    </section>
-  </main>
-
-  <script>
+<script>
     const SUPABASE_URL = "YOUR_SUPABASE_URL";
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const el = (id) => document.getElementById(id);
-    const ADMIN_PASS = "admin123";            // <-- عوضش کن
-    const LS_ADMIN = "wwa_admin_ok";
+    const { createClient } = window.supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function escapeHtml(str) {
-      return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-    function fmtDate(x) { try { return new Date(x).toLocaleString("fa-IR"); } catch { return String(x); } }
+    let selectedCountryId = null;
 
-    function setAdmin(ok) {
-      localStorage.setItem(LS_ADMIN, ok ? "1" : "0");
-      el("lock").classList.toggle("hidden", ok);
-      el("dash").classList.toggle("hidden", !ok);
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
     }
 
-    el("form-lock").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const pass = el("admin-pass").value;
-      if (pass === ADMIN_PASS) {
-        setAdmin(true);
-        init();
-      } else {
-        alert("رمز اشتباه است.");
-      }
+    document.addEventListener("DOMContentLoaded", () => {
+        checkAdminAuth();
     });
 
-    el("btn-admin-logout").addEventListener("click", () => {
-      setAdmin(false);
-      location.reload();
-    });
+    async function checkAdminAuth() {
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
 
-    // -------- Countries selector --------
-    async function loadCountriesSelector() {
-      const { data, error } = await sb.from("countries").select("id,name,flag_emoji,username").order("name", { ascending: true });
-      const sel = el("country-select");
-      sel.innerHTML = `<option value="">— انتخاب —</option>`;
-      if (error) return alert(error.message);
-      for (const c of (data || [])) {
-        const label = `${c.flag_emoji || "🏳️"} ${c.name} (@${c.username})`;
-        sel.insertAdjacentHTML("beforeend", `<option value="${c.id}">${escapeHtml(label)}</option>`);
-      }
+        const { data: isAdmin, error } = await client.from('app_admins').select('*').eq('user_id', user.id).maybeSingle();
+        if (error || !isAdmin) {
+            alert("دسترسی غیرمجاز! این حساب کاربری دسترسی مدیریت ندارد.");
+            logout();
+            return;
+        }
+
+        loadCountriesList();
+        loadNews();
+        loadStatements();
+        loadShopProductsForSelect();
     }
 
-    // -------- News --------
+    async function loadCountriesList() {
+        const { data: list } = await client.from('countries').select('*').order('name');
+        const container = document.getElementById("countriesList");
+        if (!list) return;
+
+        container.innerHTML = list.map(c => `
+            <div class="card" style="cursor:pointer;" onclick="openCountryPanel('${c.id}')">
+                <h4>${escapeHTML(c.flag_emoji)} ${escapeHTML(c.name)}</h4>
+                <p>بودجه: $${Number(c.budget).toLocaleString()} | امتیاز: ${c.points}</p>
+            </div>
+        `).join('');
+    }
+
+    async function openCountryPanel(countryId) {
+        selectedCountryId = countryId;
+        document.getElementById("countryDetailsPanel").style.display = "block";
+        
+        const { data: country } = await client.from('countries').select('*').eq('id', countryId).single();
+        if (!country) return;
+
+        document.getElementById("panelCountryTitle").innerText = `مدیریت کشور: ${escapeHTML(country.name)}`;
+        document.getElementById("editBudget").value = country.budget;
+        document.getElementById("editPoints").value = country.points;
+        document.getElementById("editStatus").value = country.status;
+
+        loadCountryIncomes();
+        loadCountryAssets();
+        loadCountryScenarios();
+        loadCountryChat();
+    }
+
+    async function saveCountryInfo() {
+        if (!selectedCountryId) return;
+        const budget = parseFloat(document.getElementById("editBudget").value);
+        const points = parseInt(document.getElementById("editPoints").value);
+        const status = document.getElementById("editStatus").value.trim();
+
+        const { error } = await client.from('countries').update({
+            budget,
+            points,
+            status
+        }).eq('id', selectedCountryId);
+
+        if (error) {
+            alert("خطا در ذخیره‌سازی: " + error.message);
+        } else {
+            alert("تغییرات با موفقیت ذخیره شد.");
+            loadCountriesList();
+        }
+    }
+
+    async function loadCountryIncomes() {
+        const { data: incomes } = await client.from('incomes').select('*').eq('country_id', selectedCountryId);
+        const container = document.getElementById("adminIncomesList");
+        if (!incomes) return;
+        container.innerHTML = incomes.map(i => `
+            <li>
+                <strong>${escapeHTML(i.source_name)}</strong>: $${Number(i.amount).toLocaleString()} روزانه
+                <button class="btn-delete" style="width:auto; padding:2px 6px; margin:0;" onclick="deleteIncome('${i.id}')">حذف</button>
+            </li>
+        `).join('');
+    }
+
+    async function addIncome() {
+        const source = document.getElementById("newIncomeSource").value.trim();
+        const amount = parseFloat(document.getElementById("newIncomeAmount").value);
+        if (!source || isNaN(amount)) {
+            alert("اطلاعات درآمد معتبر نیست.");
+            return;
+        }
+
+        const { error } = await client.from('incomes').insert({
+            country_id: selectedCountryId,
+            source_name: source,
+            amount: amount
+        });
+
+        if (error) {
+            alert("خطا در ثبت درآمد: " + error.message);
+        } else {
+            document.getElementById("newIncomeSource").value = "";
+            document.getElementById("newIncomeAmount").value = "";
+            loadCountryIncomes();
+        }
+    }
+
+    async function deleteIncome(incomeId) {
+        if (!confirm("آیا مایل به حذف این درآمد هستید؟")) return;
+        await client.from('incomes').delete().eq('id', incomeId);
+        loadCountryIncomes();
+    }
+
+    async function loadShopProductsForSelect() {
+        const { data: products } = await client.from('shop_products').select('*');
+        const select = document.getElementById("assetProductSelect");
+        if (!products) return;
+        select.innerHTML = products.map(p => `
+            <option value="${p.id}">${escapeHTML(p.name)}</option>
+        `).join('');
+    }
+
+    async function loadCountryAssets() {
+        const { data: assets } = await client.from('country_assets').select('*, shop_products(name)').eq('country_id', selectedCountryId);
+        const container = document.getElementById("adminAssetsList");
+        if (!assets) return;
+        container.innerHTML = assets.map(a => `
+            <li>${escapeHTML(a.shop_products?.name || 'نامشخص')}: ${a.quantity} عدد</li>
+        `).join('');
+    }
+
+    async function setAsset() {
+        const productId = document.getElementById("assetProductSelect").value;
+        const qty = parseInt(document.getElementById("assetQty").value);
+        if (!productId || isNaN(qty)) return;
+
+        const { error } = await client.from('country_assets').upsert({
+            country_id: selectedCountryId,
+            product_id: productId,
+            quantity: qty
+        }, { onConflict: 'country_id,product_id' });
+
+        if (error) {
+            alert("خطا در بروزرسانی دارایی: " + error.message);
+        } else {
+            alert("دارایی با موفقیت بروزرسانی شد.");
+            loadCountryAssets();
+        }
+    }
+
+    async function loadCountryScenarios() {
+        const { data: list } = await client.from('scenarios').select('*').eq('country_id', selectedCountryId).order('created_at', { ascending: false });
+        const container = document.getElementById("adminScenariosList");
+        if (!list) return;
+
+        container.innerHTML = list.map(s => `
+            <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:4px;">
+                <h5>${escapeHTML(s.title)} [وضعیت: ${escapeHTML(s.status)}]</h5>
+                <p>${escapeHTML(s.description)}</p>
+                
+                <textarea id="resp_${s.id}" placeholder="پاسخ ادمین به سناریو...">${escapeHTML(s.admin_response || '')}</textarea>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-submit" onclick="respondScenario('${s.id}', 'approved')">تأیید و ثبت پاسخ</button>
+                    <button class="btn-delete" onclick="respondScenario('${s.id}', 'rejected')">رد کردن</button>
+                    <button class="btn-delete" style="background:#555;" onclick="deleteScenario('${s.id}')">حذف سناریو</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function respondScenario(scenarioId, status) {
+        const responseText = document.getElementById(`resp_${scenarioId}`).value.trim();
+        const { error } = await client.from('scenarios').update({
+            status: status,
+            admin_response: responseText
+        }).eq('id', scenarioId);
+
+        if (error) {
+            alert("خطا در ثبت وضعیت: " + error.message);
+        } else {
+            alert("سناریو با موفقیت پاسخ‌دهی شد.");
+            loadCountryScenarios();
+        }
+    }
+
+    async function deleteScenario(scenarioId) {
+        if (!confirm("آیا مایل به حذف کل این سناریو هستید؟")) return;
+        await client.from('scenarios').delete().eq('id', scenarioId);
+        loadCountryScenarios();
+    }
+
+    async function loadCountryChat() {
+        const { data: messages } = await client.from('admin_chats').select('*').eq('country_id', selectedCountryId).order('created_at', { ascending: true });
+        const container = document.getElementById("adminChatBox");
+        if (!messages) return;
+
+        container.innerHTML = messages.map(m => `
+            <div class="chat-msg ${m.sender_role === 'admin' ? 'me' : 'other'}">
+                <strong>${m.sender_role === 'admin' ? 'ادمین ارشد' : 'کشور مخاطب'}:</strong>
+                <p style="margin:4px 0 0 0;">${escapeHTML(m.message)}</p>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendChatToCountry() {
+        const text = document.getElementById("adminMsgInput").value.trim();
+        if (!text || !selectedCountryId) return;
+
+        const { error } = await client.from('admin_chats').insert({
+            country_id: selectedCountryId,
+            message: text,
+            sender_role: 'admin'
+        });
+
+        if (error) {
+            alert("خطا در ارسال پیام: " + error.message);
+        } else {
+            document.getElementById("adminMsgInput").value = "";
+            loadCountryChat();
+        }
+    }
+
+    async function publishNews() {
+        const title = document.getElementById("newsTitle").value.trim();
+        const content = document.getElementById("newsContent").value.trim();
+        const imageUrl = document.getElementById("newsImage").value.trim();
+
+        if (!title || !content) {
+            alert("عنوان و متن خبر الزامی است.");
+            return;
+        }
+
+        const { error } = await client.from('news').insert({
+            title,
+            content,
+            image_url: imageUrl || null
+        });
+
+        if (error) {
+            alert("خطا در ثبت خبر: " + error.message);
+        } else {
+            alert("خبر فوری با موفقیت در جهان منتشر شد.");
+            document.getElementById("newsTitle").value = "";
+            document.getElementById("newsContent").value = "";
+            document.getElementById("newsImage").value = "";
+            loadNews();
+        }
+    }
+
     async function loadNews() {
-      const box = el("news-list");
-      box.innerHTML = "";
+        const { data: list } = await client.from('news').select('*').order('created_at', { ascending: false });
+        const container = document.getElementById("newsList");
+        if (!list) return;
 
-      const { data, error } = await sb.from("news").select("*").order("created_at", { ascending: false }).limit(20);
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">خبری نیست.</div>`;
-        return;
-      }
-      for (const n of data) {
-        box.insertAdjacentHTML("beforeend", `
-          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="font-black text-rose-200">${escapeHtml(n.title)}</div>
-              <div class="text-[10px] text-slate-500">${fmtDate(n.created_at)}</div>
+        container.innerHTML = list.map(n => `
+            <div class="card">
+                <h4>${escapeHTML(n.title)}</h4>
+                <p>${escapeHTML(n.content)}</p>
+                <button class="btn-delete" onclick="deleteNews('${n.id}')">حذف خبر</button>
             </div>
-            <div class="mt-2 text-xs text-slate-200 whitespace-pre-wrap">${escapeHtml(n.content)}</div>
-          </div>
-        `);
-      }
+        `).join('');
     }
 
-    el("form-news").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const title = el("news-title").value.trim();
-      const content = el("news-content").value.trim();
+    async function deleteNews(newsId) {
+        if (!confirm("آیا مایل به حذف این خبر هستید؟")) return;
+        await client.from('news').delete().eq('id', newsId);
+        loadNews();
+    }
 
-      const { error } = await sb.from("news").insert({ title, content });
-      if (error) return alert("خطا: " + error.message);
+    async function loadStatements() {
+        const { data: list } = await client.from('statements').select('*, countries(name)').order('created_at', { ascending: false });
+        const container = document.getElementById("statementsList");
+        if (!list) return;
 
-      el("form-news").reset();
-      await loadNews();
-      alert("خبر ثبت شد.");
-    });
-
-    el("btn-news-refresh").addEventListener("click", loadNews);
-
-    // -------- Scenarios --------
-    async function loadScenarios() {
-      const box = el("scenarios-list");
-      box.innerHTML = "";
-
-      const { data, error } = await sb
-        .from("scenarios")
-        .select("*, countries(name,flag_emoji,username)")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">سناریویی نیست.</div>`;
-        return;
-      }
-
-      for (const s of data) {
-        const countryLabel = `${s.countries?.flag_emoji || "🏳️"} ${s.countries?.name || "?"} (@${s.countries?.username || "-"})`;
-        box.insertAdjacentHTML("beforeend", `
-          <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-            <div class="flex items-center justify-between gap-2">
-              <div class="font-black">${escapeHtml(s.title)}</div>
-              <div class="text-xs px-2 py-1 rounded-lg border border-slate-700">${escapeHtml(s.status)}</div>
+        container.innerHTML = list.map(s => `
+            <div class="card">
+                <h4>${escapeHTML(s.title)}</h4>
+                <p>صادرکننده: ${escapeHTML(s.countries?.name || 'نامشخص')}</p>
+                <p>${escapeHTML(s.content)}</p>
+                <button class="btn-delete" onclick="deleteStatement('${s.id}')">حذف و سانسور بیانیه</button>
             </div>
-            <div class="text-xs text-slate-400 mt-1">${escapeHtml(countryLabel)} • ${fmtDate(s.created_at)}</div>
-            <div class="mt-2 text-sm whitespace-pre-wrap">${escapeHtml(s.description)}</div>
-
-            <div class="mt-3 grid grid-cols-1 gap-2">
-              <textarea id="resp-${s.id}" rows="2" placeholder="پاسخ ادمین..."
-                        class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500">${escapeHtml(s.admin_response || "")}</textarea>
-
-              <div class="flex flex-wrap gap-2">
-                <button class="btn-approve rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3 py-2 text-xs"
-                        data-id="${s.id}">تایید</button>
-                <button class="btn-reject rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2 text-xs"
-                        data-id="${s.id}">رد</button>
-                <button class="btn-save rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-xs"
-                        data-id="${s.id}">ذخیره پاسخ</button>
-              </div>
-            </div>
-          </div>
-        `);
-      }
-
-      document.querySelectorAll(".btn-approve").forEach(b => b.onclick = () => setScenarioStatus(b.dataset.id, "approved"));
-      document.querySelectorAll(".btn-reject").forEach(b => b.onclick = () => setScenarioStatus(b.dataset.id, "rejected"));
-      document.querySelectorAll(".btn-save").forEach(b => b.onclick = () => saveScenarioResponse(b.dataset.id));
+        `).join('');
     }
 
-    async function setScenarioStatus(id, status) {
-      const resp = el(`resp-${id}`).value;
-      const { error } = await sb.from("scenarios").update({ status, admin_response: resp }).eq("id", id);
-      if (error) return alert("خطا: " + error.message);
-      await loadScenarios();
-    }
-    async function saveScenarioResponse(id) {
-      const resp = el(`resp-${id}`).value;
-      const { error } = await sb.from("scenarios").update({ admin_response: resp }).eq("id", id);
-      if (error) return alert("خطا: " + error.message);
-      alert("ذخیره شد.");
+    async function deleteStatement(statId) {
+        if (!confirm("آیا مایل به حذف و سانسور این بیانیه عمومی هستید؟")) return;
+        await client.from('statements').delete().eq('id', statId);
+        loadStatements();
     }
 
-    el("btn-scenarios-refresh").addEventListener("click", loadScenarios);
-
-    // -------- Chats --------
-    async function loadChat() {
-      const countryId = el("country-select").value;
-      const box = el("chat-box");
-      box.innerHTML = "";
-
-      if (!countryId) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">یک کشور انتخاب کن.</div>`;
-        return;
-      }
-
-      const { data, error } = await sb
-        .from("admin_chats")
-        .select("*")
-        .eq("country_id", countryId)
-        .order("created_at", { ascending: true })
-        .limit(200);
-
-      if (error) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
-        return;
-      }
-      if (!data?.length) {
-        box.innerHTML = `<div class="text-slate-500 text-xs">پیامی نیست.</div>`;
-        return;
-      }
-
-      for (const m of data) {
-        const isAdmin = m.sender_role === "admin";
-        box.insertAdjacentHTML("beforeend", `
-          <div class="flex ${isAdmin ? "justify-end" : "justify-start"}">
-            <div class="max-w-[85%] rounded-lg border ${isAdmin ? "border-rose-900/60 bg-rose-950/20" : "border-amber-900/60 bg-amber-950/20"} p-2">
-              <div class="text-[10px] text-slate-400 mb-1">${isAdmin ? "ادمین" : "کشور"} • ${fmtDate(m.created_at)}</div>
-              <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(m.message)}</div>
-            </div>
-          </div>
-        `);
-      }
-      box.scrollTop = box.scrollHeight;
+    function switchTab(tabId) {
+        document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+        
+        document.getElementById(tabId).classList.add("active");
+        event.currentTarget.classList.add("active");
     }
 
-    el("country-select").addEventListener("change", loadChat);
-    el("btn-chat-refresh").addEventListener("click", loadChat);
-
-    el("form-chat").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const countryId = el("country-select").value;
-      if (!countryId) return alert("کشور انتخاب نشده.");
-
-      const msg = el("chat-msg").value.trim();
-      if (!msg) return;
-
-      const { error } = await sb.from("admin_chats").insert({
-        country_id: countryId,
-        message: msg,
-        sender_role: "admin"
-      });
-
-      if (error) return alert("خطا: " + error.message);
-
-      el("chat-msg").value = "";
-      await loadChat();
-    });
-
-    async function init() {
-      await loadCountriesSelector();
-      await loadNews();
-      await loadScenarios();
-      await loadChat();
+    async function logout() {
+        await client.auth.signOut();
+        window.location.href = "index.html";
     }
-
-    // init lock state
-    if (localStorage.getItem(LS_ADMIN) === "1") {
-      setAdmin(true);
-      init();
-    }
-    setInterval(() => { if (!el("dash").classList.contains("hidden")) loadChat(); }, 5000);
-  </script>
+</script>
 </body>
 </html>
