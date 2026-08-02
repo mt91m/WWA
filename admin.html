@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>جنگ جهانی حیوانات | پنل ادمین</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <div class="text-2xl">🛡️</div>
+        <div>
+          <div class="font-black text-lg text-rose-400">پنل ادمین</div>
+          <div class="text-xs text-slate-400">مدیریت سناریوها / اخبار / چت</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خانه</a>
+        <button id="btn-admin-logout" class="rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-sm">خروج ادمین</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- admin lock -->
+    <section id="lock" class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 max-w-md mx-auto">
+      <h2 class="font-black text-rose-300">ورود ادمین (محلی)</h2>
+      <p class="text-xs text-slate-400 mt-1">این سیستم به Auth وصل نیست. فقط برای کنترل ساده.</p>
+      <form id="form-lock" class="mt-4 space-y-2">
+        <input id="admin-pass" type="password" placeholder="رمز ادمین"
+               class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
+        <button class="w-full rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2">ورود</button>
+      </form>
+      <div class="mt-3 text-xs text-slate-500">
+        رمز پیش‌فرض داخل کد: <code>admin123</code>
+      </div>
+    </section>
+
+    <!-- dashboard -->
+    <section id="dash" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- news -->
+      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
+        <h2 class="font-bold text-rose-300">📰 انتشار خبر</h2>
+        <form id="form-news" class="space-y-2">
+          <input id="news-title" required placeholder="عنوان خبر"
+                 class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
+          <textarea id="news-content" required rows="4" placeholder="متن خبر..."
+                    class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500"></textarea>
+          <button class="rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2 w-full">ثبت خبر</button>
+        </form>
+
+        <div class="pt-3 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-200">آخرین اخبار</h3>
+            <button id="btn-news-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
+          </div>
+          <div id="news-list" class="mt-3 space-y-2 text-sm"></div>
+        </div>
+      </div>
+
+      <!-- scenarios -->
+      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-rose-300">⚙️ سناریوها</h2>
+          <button id="btn-scenarios-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
+        </div>
+        <div id="scenarios-list" class="mt-4 space-y-3 text-sm"></div>
+      </div>
+
+      <!-- admin chats -->
+      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex flex-col h-[720px]">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-rose-300">💬 چت کشورها</h2>
+          <button id="btn-chat-refresh" class="text-xs rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-800">رفرش</button>
+        </div>
+
+        <div class="mt-3">
+          <label class="block text-xs text-slate-400 mb-1">انتخاب کشور</label>
+          <select id="country-select" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500">
+            <option value="">— انتخاب —</option>
+          </select>
+        </div>
+
+        <div id="chat-box" class="mt-3 flex-1 overflow-auto space-y-2 text-sm p-2 rounded-lg border border-slate-800 bg-slate-950/40"></div>
+
+        <form id="form-chat" class="mt-3 flex gap-2">
+          <input id="chat-msg" required placeholder="پاسخ ادمین..."
+                 class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500" />
+          <button class="rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2">ارسال</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const el = (id) => document.getElementById(id);
+    const ADMIN_PASS = "admin123";            // <-- عوضش کن
+    const LS_ADMIN = "wwa_admin_ok";
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+    function fmtDate(x) { try { return new Date(x).toLocaleString("fa-IR"); } catch { return String(x); } }
+
+    function setAdmin(ok) {
+      localStorage.setItem(LS_ADMIN, ok ? "1" : "0");
+      el("lock").classList.toggle("hidden", ok);
+      el("dash").classList.toggle("hidden", !ok);
+    }
+
+    el("form-lock").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pass = el("admin-pass").value;
+      if (pass === ADMIN_PASS) {
+        setAdmin(true);
+        init();
+      } else {
+        alert("رمز اشتباه است.");
+      }
+    });
+
+    el("btn-admin-logout").addEventListener("click", () => {
+      setAdmin(false);
+      location.reload();
+    });
+
+    // -------- Countries selector --------
+    async function loadCountriesSelector() {
+      const { data, error } = await sb.from("countries").select("id,name,flag_emoji,username").order("name", { ascending: true });
+      const sel = el("country-select");
+      sel.innerHTML = `<option value="">— انتخاب —</option>`;
+      if (error) return alert(error.message);
+      for (const c of (data || [])) {
+        const label = `${c.flag_emoji || "🏳️"} ${c.name} (@${c.username})`;
+        sel.insertAdjacentHTML("beforeend", `<option value="${c.id}">${escapeHtml(label)}</option>`);
+      }
+    }
+
+    // -------- News --------
+    async function loadNews() {
+      const box = el("news-list");
+      box.innerHTML = "";
+
+      const { data, error } = await sb.from("news").select("*").order("created_at", { ascending: false }).limit(20);
+      if (error) {
+        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
+        return;
+      }
+      if (!data?.length) {
+        box.innerHTML = `<div class="text-slate-500 text-xs">خبری نیست.</div>`;
+        return;
+      }
+      for (const n of data) {
+        box.insertAdjacentHTML("beforeend", `
+          <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-black text-rose-200">${escapeHtml(n.title)}</div>
+              <div class="text-[10px] text-slate-500">${fmtDate(n.created_at)}</div>
+            </div>
+            <div class="mt-2 text-xs text-slate-200 whitespace-pre-wrap">${escapeHtml(n.content)}</div>
+          </div>
+        `);
+      }
+    }
+
+    el("form-news").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = el("news-title").value.trim();
+      const content = el("news-content").value.trim();
+
+      const { error } = await sb.from("news").insert({ title, content });
+      if (error) return alert("خطا: " + error.message);
+
+      el("form-news").reset();
+      await loadNews();
+      alert("خبر ثبت شد.");
+    });
+
+    el("btn-news-refresh").addEventListener("click", loadNews);
+
+    // -------- Scenarios --------
+    async function loadScenarios() {
+      const box = el("scenarios-list");
+      box.innerHTML = "";
+
+      const { data, error } = await sb
+        .from("scenarios")
+        .select("*, countries(name,flag_emoji,username)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
+        return;
+      }
+      if (!data?.length) {
+        box.innerHTML = `<div class="text-slate-500 text-xs">سناریویی نیست.</div>`;
+        return;
+      }
+
+      for (const s of data) {
+        const countryLabel = `${s.countries?.flag_emoji || "🏳️"} ${s.countries?.name || "?"} (@${s.countries?.username || "-"})`;
+        box.insertAdjacentHTML("beforeend", `
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-black">${escapeHtml(s.title)}</div>
+              <div class="text-xs px-2 py-1 rounded-lg border border-slate-700">${escapeHtml(s.status)}</div>
+            </div>
+            <div class="text-xs text-slate-400 mt-1">${escapeHtml(countryLabel)} • ${fmtDate(s.created_at)}</div>
+            <div class="mt-2 text-sm whitespace-pre-wrap">${escapeHtml(s.description)}</div>
+
+            <div class="mt-3 grid grid-cols-1 gap-2">
+              <textarea id="resp-${s.id}" rows="2" placeholder="پاسخ ادمین..."
+                        class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-rose-500">${escapeHtml(s.admin_response || "")}</textarea>
+
+              <div class="flex flex-wrap gap-2">
+                <button class="btn-approve rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3 py-2 text-xs"
+                        data-id="${s.id}">تایید</button>
+                <button class="btn-reject rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-black px-3 py-2 text-xs"
+                        data-id="${s.id}">رد</button>
+                <button class="btn-save rounded-lg border border-slate-700 hover:bg-slate-800 px-3 py-2 text-xs"
+                        data-id="${s.id}">ذخیره پاسخ</button>
+              </div>
+            </div>
+          </div>
+        `);
+      }
+
+      document.querySelectorAll(".btn-approve").forEach(b => b.onclick = () => setScenarioStatus(b.dataset.id, "approved"));
+      document.querySelectorAll(".btn-reject").forEach(b => b.onclick = () => setScenarioStatus(b.dataset.id, "rejected"));
+      document.querySelectorAll(".btn-save").forEach(b => b.onclick = () => saveScenarioResponse(b.dataset.id));
+    }
+
+    async function setScenarioStatus(id, status) {
+      const resp = el(`resp-${id}`).value;
+      const { error } = await sb.from("scenarios").update({ status, admin_response: resp }).eq("id", id);
+      if (error) return alert("خطا: " + error.message);
+      await loadScenarios();
+    }
+    async function saveScenarioResponse(id) {
+      const resp = el(`resp-${id}`).value;
+      const { error } = await sb.from("scenarios").update({ admin_response: resp }).eq("id", id);
+      if (error) return alert("خطا: " + error.message);
+      alert("ذخیره شد.");
+    }
+
+    el("btn-scenarios-refresh").addEventListener("click", loadScenarios);
+
+    // -------- Chats --------
+    async function loadChat() {
+      const countryId = el("country-select").value;
+      const box = el("chat-box");
+      box.innerHTML = "";
+
+      if (!countryId) {
+        box.innerHTML = `<div class="text-slate-500 text-xs">یک کشور انتخاب کن.</div>`;
+        return;
+      }
+
+      const { data, error } = await sb
+        .from("admin_chats")
+        .select("*")
+        .eq("country_id", countryId)
+        .order("created_at", { ascending: true })
+        .limit(200);
+
+      if (error) {
+        box.innerHTML = `<div class="text-rose-400 text-xs">${error.message}</div>`;
+        return;
+      }
+      if (!data?.length) {
+        box.innerHTML = `<div class="text-slate-500 text-xs">پیامی نیست.</div>`;
+        return;
+      }
+
+      for (const m of data) {
+        const isAdmin = m.sender_role === "admin";
+        box.insertAdjacentHTML("beforeend", `
+          <div class="flex ${isAdmin ? "justify-end" : "justify-start"}">
+            <div class="max-w-[85%] rounded-lg border ${isAdmin ? "border-rose-900/60 bg-rose-950/20" : "border-amber-900/60 bg-amber-950/20"} p-2">
+              <div class="text-[10px] text-slate-400 mb-1">${isAdmin ? "ادمین" : "کشور"} • ${fmtDate(m.created_at)}</div>
+              <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(m.message)}</div>
+            </div>
+          </div>
+        `);
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+
+    el("country-select").addEventListener("change", loadChat);
+    el("btn-chat-refresh").addEventListener("click", loadChat);
+
+    el("form-chat").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const countryId = el("country-select").value;
+      if (!countryId) return alert("کشور انتخاب نشده.");
+
+      const msg = el("chat-msg").value.trim();
+      if (!msg) return;
+
+      const { error } = await sb.from("admin_chats").insert({
+        country_id: countryId,
+        message: msg,
+        sender_role: "admin"
+      });
+
+      if (error) return alert("خطا: " + error.message);
+
+      el("chat-msg").value = "";
+      await loadChat();
+    });
+
+    async function init() {
+      await loadCountriesSelector();
+      await loadNews();
+      await loadScenarios();
+      await loadChat();
+    }
+
+    // init lock state
+    if (localStorage.getItem(LS_ADMIN) === "1") {
+      setAdmin(true);
+      init();
+    }
+    setInterval(() => { if (!el("dash").classList.contains("hidden")) loadChat(); }, 5000);
+  </script>
+</body>
+</html>
