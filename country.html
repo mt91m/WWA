@@ -124,4 +124,469 @@
             margin-right: auto;
             text-align: left;
         }
-        .chat-msg.othe
+        .chat-msg.other {
+            background: #dff9fb;
+            margin-left: auto;
+            text-align: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 id="countryHeader">در حال بارگذاری...</h2>
+    <button class="logout-btn" onclick="logout()">خروج</button>
+</header>
+
+<div class="container">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('homeTab')">داشبورد اقتصاد</button>
+        <button class="tab-btn" onclick="switchTab('countriesTab')">سایر کشورها</button>
+        <button class="tab-btn" onclick="switchTab('statementsTab')">بیانیه‌ها</button>
+        <button class="tab-btn" onclick="switchTab('newsTab')">اخبار</button>
+        <button class="tab-btn" onclick="switchTab('shopTab')">خرید تجهیزات</button>
+        <button class="tab-btn" onclick="switchTab('adminChatTab')">ارتباط با ادمین</button>
+        <button class="tab-btn" onclick="switchTab('privateChatTab')">چت محرمانه</button>
+    </div>
+
+    <!-- داشبورد خانه -->
+    <div id="homeTab" class="tab-content active">
+        <div class="dashboard-grid">
+            <div>
+                <h3>اطلاعات پایه</h3>
+                <div class="card">
+                    <p>بودجه فعلی: <strong id="dashBudget">$0</strong></p>
+                    <p>امتیاز کشور: <strong id="dashPoints">0</strong></p>
+                    <p>وضعیت رسمی: <strong id="dashStatus">فعال</strong></p>
+                </div>
+                <h3>منابع و دارایی‌های نظامی/غیرنظامی</h3>
+                <div class="card">
+                    <ul id="assetsList"></ul>
+                </div>
+            </div>
+            <div>
+                <h3>منابع درآمد روزانه</h3>
+                <div class="card">
+                    <ul id="incomesList"></ul>
+                </div>
+                <h3>ارسال سناریو به ادمین</h3>
+                <div class="card">
+                    <input type="text" id="scenTitle" placeholder="عنوان سناریو (مثال: عملیات شن‌های کویر)">
+                    <textarea id="scenDesc" rows="4" placeholder="شرح کامل اقدامات و درخواست‌های سناریو..."></textarea>
+                    <button class="btn-submit" onclick="sendScenarioToAdmin()">ارسال سناریو</button>
+                </div>
+                <h3>سناریوهای قبلی شما</h3>
+                <div id="scenariosList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- سایر کشورها -->
+    <div id="countriesTab" class="tab-content">
+        <h3>وضعیت روابط دیپلماتیک با ملل دیگر</h3>
+        <div id="countriesList" class="grid"></div>
+    </div>
+
+    <!-- بیانیه‌ها -->
+    <div id="statementsTab" class="tab-content">
+        <div class="dashboard-grid">
+            <div>
+                <h3>ثبت بیانیه جدید</h3>
+                <div class="card">
+                    <input type="text" id="statTitle" placeholder="عنوان بیانیه">
+                    <textarea id="statContent" rows="4" placeholder="متن رسمی بیانیه..."></textarea>
+                    <input type="text" id="statTags" placeholder="برچسب‌ها (با کاما جدا کنید)">
+                    <input type="text" id="statImage" placeholder="آدرس تصویر (اختیاری URL)">
+                    <button class="btn-submit" onclick="publishStatement()">انتشار عمومی</button>
+                </div>
+            </div>
+            <div>
+                <h3>آخرین بیانیه‌ها</h3>
+                <div id="statementsList" class="grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- اخبار -->
+    <div id="newsTab" class="tab-content">
+        <h3>خبرها</h3>
+        <div id="newsList" class="grid"></div>
+    </div>
+
+    <!-- فروشگاه -->
+    <div id="shopTab" class="tab-content">
+        <h3>فروشگاه رسمی تجهیزات نظامی و صنعتی</h3>
+        <div id="shopProducts" class="grid"></div>
+    </div>
+
+    <!-- چت ادمین -->
+    <div id="adminChatTab" class="tab-content">
+        <h3>چت مستقیم و محرمانه با ادمین کل</h3>
+        <div id="adminChatBox" class="chat-box"></div>
+        <div style="display:flex;">
+            <input type="text" id="adminMsgInput" placeholder="پیام خود را بنویسید...">
+            <button class="btn-submit" style="width:100px; margin-right:10px;" onclick="sendMsgToAdmin()">ارسال</button>
+        </div>
+    </div>
+
+    <!-- چت محرمانه بین کشورها -->
+    <div id="privateChatTab" class="tab-content">
+        <h3>گفتگوی دیپلماتیک و محرمانه با کشورها</h3>
+        <label for="chatTargetCountry">انتخاب کشور مخاطب:</label>
+        <select id="chatTargetCountry" onchange="loadPrivateChat()"></select>
+        
+        <div id="privateChatBox" class="chat-box"></div>
+        <div style="display:flex;">
+            <input type="text" id="privateMsgInput" placeholder="پیام خود را بنویسید...">
+            <button class="btn-submit" style="width:100px; margin-right:10px;" onclick="sendPrivateMsg()">ارسال</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+    const { createClient } = window.supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let myCountry = null;
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        checkAuth();
+    });
+
+    async function checkAuth() {
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        const { data: country, error } = await client
+            .from('countries')
+            .select('*')
+            .eq('auth_user_id', user.id)
+            .maybeSingle();
+
+        if (error || !country) {
+            alert("خطا در یافتن کشور متصل به این کاربر.");
+            logout();
+            return;
+        }
+
+        myCountry = country;
+        document.getElementById("countryHeader").innerText = `${escapeHTML(myCountry.flag_emoji)} پنل کشور ${escapeHTML(myCountry.name)}`;
+        
+        loadDashboard();
+        loadAllData();
+    }
+
+    async function loadDashboard() {
+        // بروزرسانی اطلاعات کشور
+        const { data: updated } = await client.from('countries').select('*').eq('id', myCountry.id).single();
+        if (updated) {
+            myCountry = updated;
+            document.getElementById("dashBudget").innerText = `$${Number(myCountry.budget).toLocaleString()}`;
+            document.getElementById("dashPoints").innerText = myCountry.points;
+            document.getElementById("dashStatus").innerText = escapeHTML(myCountry.status);
+        }
+
+        // لود دارایی‌ها
+        const { data: assets } = await client.from('country_assets')
+            .select('*, shop_products(name)')
+            .eq('country_id', myCountry.id);
+        
+        const assetsUl = document.getElementById("assetsList");
+        assetsUl.innerHTML = assets && assets.length ? assets.map(a => `
+            <li>${escapeHTML(a.shop_products?.name || 'نامعلوم')}: ${a.quantity} عدد</li>
+        `).join('') : '<li>هیچ دارایی ثبت نشده است</li>';
+
+        // لود درآمدها
+        const { data: incomes } = await client.from('incomes').select('*').eq('country_id', myCountry.id);
+        const incomesUl = document.getElementById("incomesList");
+        incomesUl.innerHTML = incomes && incomes.length ? incomes.map(i => `
+            <li>منابع: ${escapeHTML(i.source_name)} (+ $${Number(i.amount).toLocaleString()} روزانه)</li>
+        `).join('') : '<li>هیچ درآمد فعالی ثبت نشده است</li>';
+
+        // لود سناریوها
+        const { data: scenarios } = await client.from('scenarios').select('*').eq('country_id', myCountry.id).order('created_at', { ascending: false });
+        const scenContainer = document.getElementById("scenariosList");
+        scenContainer.innerHTML = scenarios && scenarios.length ? scenarios.map(s => `
+            <div class="card">
+                <h4>${escapeHTML(s.title)} [وضعیت: ${escapeHTML(s.status)}]</h4>
+                <p>${escapeHTML(s.description)}</p>
+                ${s.admin_response ? `<p style="color:var(--accent)">پاسخ ادمین: ${escapeHTML(s.admin_response)}</p>` : ''}
+            </div>
+        `).join('') : '<p>هیچ سناریویی فرستاده نشده است.</p>';
+    }
+
+    async function loadAllData() {
+        loadCountriesList();
+        loadStatements();
+        loadNews();
+        loadShop();
+        loadAdminChat();
+        setupPrivateChatSelect();
+    }
+
+    async function loadCountriesList() {
+        const { data: all } = await client.from('countries').select('*').order('name');
+        const container = document.getElementById("countriesList");
+        if (!all) return;
+        container.innerHTML = all.map(c => `
+            <div class="card">
+                <h4>${escapeHTML(c.flag_emoji)} ${escapeHTML(c.name)}</h4>
+                <p>امتیاز: ${c.points}</p>
+                <p>بودجه اقتصادی: $${Number(c.budget).toLocaleString()}</p>
+            </div>
+        `).join('');
+    }
+
+    async function loadStatements() {
+        const { data: list } = await client.from('statements').select('*, countries(name, flag_emoji)').order('created_at', { ascending: false });
+        const container = document.getElementById("statementsList");
+        if (!list) return;
+        container.innerHTML = list.map(s => `
+            <div class="card">
+                <h4>${escapeHTML(s.title)}</h4>
+                <p style="font-size:11px; color:#777;">توسط: ${escapeHTML(s.countries?.flag_emoji || '')} ${escapeHTML(s.countries?.name || '')}</p>
+                <p>${escapeHTML(s.content)}</p>
+                ${s.image_url ? `<img src="${escapeHTML(s.image_url)}" style="max-width:100%; border-radius:4px; margin-top:8px;">` : ''}
+            </div>
+        `).join('');
+    }
+
+    async function loadNews() {
+        const { data: list } = await client.from('news').select('*').order('created_at', { ascending: false });
+        const container = document.getElementById("newsList");
+        if (!list) return;
+        container.innerHTML = list.map(n => `
+            <div class="card" style="border-right: 3px solid var(--accent)">
+                <h4>${escapeHTML(n.title)}</h4>
+                <p>${escapeHTML(n.content)}</p>
+                ${n.image_url ? `<img src="${escapeHTML(n.image_url)}" style="max-width:100%;">` : ''}
+            </div>
+        `).join('');
+    }
+
+    async function loadShop() {
+        const { data: list } = await client.from('shop_products').select('*').order('cost');
+        const container = document.getElementById("shopProducts");
+        if (!list) return;
+        container.innerHTML = list.map(p => `
+            <div class="card">
+                <h4>${escapeHTML(p.name)}</h4>
+                <p>قیمت: <strong>$${Number(p.cost).toLocaleString()}</strong></p>
+                <p>${escapeHTML(p.description || '')}</p>
+                <button class="btn-submit" onclick="buyItem('${p.id}')">خرید ۱ عدد</button>
+            </div>
+        `).join('');
+    }
+
+    async function buyItem(productId) {
+        const { data, error } = await client.rpc('buy_product_secure', {
+            p_product_id: productId,
+            p_qty: 1
+        });
+
+        if (error) {
+            alert("خطا در ارتباط با سرور: " + error.message);
+            return;
+        }
+
+        if (data && data.success) {
+            alert(data.message);
+            loadDashboard();
+        } else {
+            alert(data ? data.message : "خطایی در انجام خرید رخ داد.");
+        }
+    }
+
+    async function publishStatement() {
+        const title = document.getElementById("statTitle").value.trim();
+        const content = document.getElementById("statContent").value.trim();
+        const tagsRaw = document.getElementById("statTags").value.trim();
+        const imageUrl = document.getElementById("statImage").value.trim();
+
+        if (!title || !content) {
+            alert("عنوان و متن بیانیه الزامی است.");
+            return;
+        }
+
+        const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : [];
+
+        const { error } = await client.from('statements').insert({
+            country_id: myCountry.id,
+            title,
+            content,
+            image_url: imageUrl || null,
+            tags
+        });
+
+        if (error) {
+            alert("خطا در انتشار: " + error.message);
+        } else {
+            alert("بیانیه با موفقیت منتشر شد.");
+            document.getElementById("statTitle").value = "";
+            document.getElementById("statContent").value = "";
+            document.getElementById("statTags").value = "";
+            document.getElementById("statImage").value = "";
+            loadStatements();
+        }
+    }
+
+    async function sendScenarioToAdmin() {
+        const title = document.getElementById("scenTitle").value.trim();
+        const description = document.getElementById("scenDesc").value.trim();
+
+        if (!title || !description) {
+            alert("عنوان و شرح سناریو الزامی است.");
+            return;
+        }
+
+        const { error } = await client.from('scenarios').insert({
+            country_id: myCountry.id,
+            title,
+            description
+        });
+
+        if (error) {
+            alert("خطا در ارسال سناریو: " + error.message);
+        } else {
+            alert("سناریو برای بررسی ادمین ارسال شد.");
+            document.getElementById("scenTitle").value = "";
+            document.getElementById("scenDesc").value = "";
+            loadDashboard();
+        }
+    }
+
+    async function loadAdminChat() {
+        const { data: messages } = await client
+            .from('admin_chats')
+            .select('*')
+            .eq('country_id', myCountry.id)
+            .order('created_at', { ascending: true });
+
+        const container = document.getElementById("adminChatBox");
+        if (!messages) return;
+
+        container.innerHTML = messages.map(m => `
+            <div class="chat-msg ${m.sender_role === 'country' ? 'me' : 'other'}">
+                <strong>${m.sender_role === 'country' ? 'شما' : 'ادمین'}:</strong>
+                <p style="margin:4px 0 0 0;">${escapeHTML(m.message)}</p>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMsgToAdmin() {
+        const text = document.getElementById("adminMsgInput").value.trim();
+        if (!text) return;
+
+        const { error } = await client.from('admin_chats').insert({
+            country_id: myCountry.id,
+            message: text,
+            sender_role: 'country'
+        });
+
+        if (error) {
+            alert("خطا در ارسال: " + error.message);
+        } else {
+            document.getElementById("adminMsgInput").value = "";
+            loadAdminChat();
+        }
+    }
+
+    async function setupPrivateChatSelect() {
+        const { data: all } = await client.from('countries').select('*').order('name');
+        const select = document.getElementById("chatTargetCountry");
+        if (!all) return;
+        select.innerHTML = all
+            .filter(c => c.id !== myCountry.id)
+            .map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+        loadPrivateChat();
+    }
+
+    async function loadPrivateChat() {
+        const targetId = document.getElementById("chatTargetCountry").value;
+        if (!targetId) return;
+
+        // فراخوانی پیام‌هایی که یکی از طرفین آن خودمان و طرف دیگر کشور مخاطب است
+        const { data: chatData, error } = await client
+            .from('private_chats')
+            .select('*')
+            .or(`and(sender_id.eq.${myCountry.id},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${myCountry.id})`)
+            .order('created_at', { ascending: true });
+
+        const container = document.getElementById("privateChatBox");
+        if (error || !chatData) {
+            container.innerHTML = "<p>خطا در لود پیام‌ها.</p>";
+            return;
+        }
+
+        container.innerHTML = chatData.map(m => `
+            <div class="chat-msg ${m.sender_id === myCountry.id ? 'me' : 'other'}">
+                <strong>${m.sender_id === myCountry.id ? 'شما' : 'کشور مقابل'}:</strong>
+                <p style="margin:4px 0 0 0;">${escapeHTML(m.message)}</p>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendPrivateMsg() {
+        const targetId = document.getElementById("chatTargetCountry").value;
+        const text = document.getElementById("privateMsgInput").value.trim();
+        if (!targetId || !text) return;
+
+        const { error } = await client.from('private_chats').insert({
+            sender_id: myCountry.id,
+            receiver_id: targetId,
+            message: text
+        });
+
+        if (error) {
+            alert("خطا در ارسال: " + error.message);
+        } else {
+            document.getElementById("privateMsgInput").value = "";
+            loadPrivateChat();
+        }
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+        
+        document.getElementById(tabId).classList.add("active");
+        event.currentTarget.classList.add("active");
+
+        if (tabId === 'homeTab') loadDashboard();
+    }
+
+    async function logout() {
+        await client.auth.signOut();
+        window.location.href = "index.html";
+    }
+</script>
+</body>
+</html>
