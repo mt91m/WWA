@@ -2,570 +2,592 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>پنل مدیریت کل سیستم</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت ارشد - جنگ جهانی حیوانات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1e272e;
-            --accent: #e74c3c;
-            --bg: #f1f2f6;
-            --card-bg: #ffffff;
-            --text: #2f3640;
+            --primary: #1e293b;
+            --secondary: #0f172a;
+            --accent: #ef4444;
+            --accent-hover: #dc2626;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg: #020617;
+            --card-bg: #0f172a;
+            --border: #1e293b;
+            --success: #10b981;
         }
-        body {
-            font-family: Tahoma, Geneva, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        header {
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            text-align: right;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .menu-btn:hover, .menu-btn.active {
             background-color: var(--primary);
-            color: white;
-            padding: 15px 20px;
+            color: var(--text-main);
+        }
+
+        .menu-btn.active {
+            border-right: 4px solid var(--accent);
+        }
+
+        .main-container {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
         }
-        .logout-btn {
-            background: var(--accent);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .container {
-            max-width: 1300px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-        .nav-tabs {
-            display: flex;
-            background: var(--primary);
-            border-radius: 5px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 15px;
-            background: none;
-            border: none;
-            color: #ccc;
-            cursor: pointer;
-            font-size: 14px;
-            text-align: center;
-        }
-        .tab-btn.active, .tab-btn:hover {
-            color: white;
-            background: rgba(255,255,255,0.1);
-        }
-        .tab-content {
+
+        .pane {
             display: none;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .tab-content.active {
+
+        .pane.active {
             display: block;
         }
-        .grid-admin {
+
+        .grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
+
         .card {
-            border: 1px solid #eee;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: white;
+            padding: 1.5rem;
         }
-        input, select, button, textarea {
+
+        .form-control {
             width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
         }
-        .btn-submit {
-            background: var(--primary);
+
+        .btn {
+            background-color: var(--accent);
             color: white;
             border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
         }
-        .btn-delete {
-            background: var(--accent);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
+
+        .btn:hover {
+            background-color: var(--accent-hover);
         }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            margin-top: 1rem;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background: var(--primary);
-            color: white;
-        }
-        .chat-box {
-            height: 250px;
-            border: 1px solid #ddd;
-            overflow-y: scroll;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #fafafa;
-        }
-        .chat-msg {
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 4px;
-            max-width: 85%;
-        }
-        .chat-msg.me {
-            background: #dcdde1;
-            margin-right: auto;
-            text-align: left;
-        }
-        .chat-msg.other {
-            background: #eccc68;
-            margin-left: auto;
+            padding: 0.8rem;
             text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--secondary);
+            color: var(--accent);
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h2>🛡️ پنل مدیریت ارشد جنگ جهانی حیوانات</h2>
-    <button class="logout-btn" onclick="logout()">خروج از حساب</button>
-</header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>مدیریت مرکزی</span>
+        </div>
+        <button class="menu-btn active" onclick="switchPane('countries')"><i class="fa-solid fa-flag"></i> مدیریت کشورها</button>
+        <button class="menu-btn" onclick="switchPane('scenarios')"><i class="fa-solid fa-scroll"></i> سناریوهای دریافتی</button>
+        <button class="menu-btn" onclick="switchPane('news')"><i class="fa-solid fa-newspaper"></i> ارسال اخبار</button>
+        <button class="menu-btn" onclick="switchPane('statements')"><i class="fa-solid fa-bullhorn"></i> نظارت بیانیه‌ها</button>
+        <div style="margin-top: auto;">
+            <a href="index.html" class="menu-btn" style="color: var(--text-muted);"><i class="fa-solid fa-house"></i> صفحه اصلی بازی</a>
+            <button class="menu-btn" onclick="logout()" style="color: var(--accent);"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+        </div>
+    </aside>
 
-<div class="container">
-    <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('countriesTab')">مدیریت کشورها</button>
-        <button class="tab-btn" onclick="switchTab('newsTab')">مدیریت اخبار جهانی</button>
-        <button class="tab-btn" onclick="switchTab('statementsTab')">مدیریت بیانیه‌ها</button>
-    </div>
+    <main class="main-container">
+        <div class="header-bar">
+            <h2 id="paneTitle">مدیریت کشورها</h2>
+            <div id="adminEmail">بارگذاری مدیر...</div>
+        </div>
 
-    <!-- تب مدیریت کشورها -->
-    <div id="countriesTab" class="tab-content active">
-        <div class="grid-admin">
-            <div>
-                <h3>لیست کشورها</h3>
-                <div id="countriesList"></div>
+        <!-- مدیریت کشورها -->
+        <section id="countriesPane" class="pane active">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h4>ایجاد کشور جدید در سرور</h4>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">شناسه کاربری UUID کاربر در Supabase Auth را جهت انتساب وارد کنید.</p>
+                <div class="grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; gap:0.5rem; align-items:center;">
+                    <input type="text" id="newCountryName" class="form-control" placeholder="نام کشور (مثال: شیرها)" style="margin-bottom:0;">
+                    <input type="text" id="newCountryCode" class="form-control" placeholder="کد کشور (مثال: LIONS)" style="margin-bottom:0;">
+                    <input type="text" id="newCountryUserId" class="form-control" placeholder="Supabase User UUID (اختیاری)" style="margin-bottom:0;">
+                    <button class="btn btn-success" onclick="createCountry()" style="height:45px;">ثبت کشور جدید</button>
+                </div>
+            </div>
+
+            <h3>فهرست کشورها و دکمه ویرایش جزئیات</h3>
+            <table style="margin-top: 1rem;">
+                <thead>
+                    <tr>
+                        <th>نام کشور</th>
+                        <th>کد</th>
+                        <th>بودجه</th>
+                        <th>امتیاز</th>
+                        <th>شاخص امنیت</th>
+                        <th>وضعیت اتصال</th>
+                        <th>عملیات مدیریت</th>
+                    </tr>
+                </thead>
+                <tbody id="countriesTableBody"></tbody>
+            </table>
+        </section>
+
+        <!-- سناریوها -->
+        <section id="scenariosPane" class="pane">
+            <h3>درخواست‌ها و سناریوهای دریافتی از کشورها</h3>
+            <div id="scenariosList" style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem;"></div>
+        </section>
+
+        <!-- اخبار -->
+        <section id="newsPane" class="pane">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h4>انتشار خبر فوری جهانی</h4>
+                <div class="form-group">
+                    <label>عنوان خبر</label>
+                    <input type="text" id="newsTitleInput" class="form-control" placeholder="تیتر خبر...">
+                </div>
+                <div class="form-group">
+                    <label>متن خبر</label>
+                    <textarea id="newsContentInput" class="form-control" rows="5" placeholder="شرح کامل رویداد..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>تگ‌ها (با کاما جدا کنید)</label>
+                    <input type="text" id="newsTagsInput" class="form-control" placeholder="جنگ, تحریم, فوری">
+                </div>
+                <button class="btn btn-success" onclick="publishNews()">انتشار رسمی خبر</button>
             </div>
             
-            <div id="countryDetailsPanel" style="display:none;">
-                <h3 id="panelCountryTitle">جزئیات کشور</h3>
-                <div class="card">
-                    <h4>تنظیمات اقتصادی و امتیازی</h4>
-                    <label>بودجه نقدی:</label>
-                    <input type="number" id="editBudget">
-                    
-                    <label>امتیاز کشور:</label>
-                    <input type="number" id="editPoints">
-                    
-                    <label>وضعیت رسمی:</label>
-                    <input type="text" id="editStatus">
-                    
-                    <button class="btn-submit" onclick="saveCountryInfo()">ذخیره اطلاعات اصلی</button>
-                </div>
+            <h3>اخبار منتشر شده</h3>
+            <div id="adminNewsList" style="margin-top:1rem;"></div>
+        </section>
 
-                <div class="card">
-                    <h4>مدیریت درآمدهای ثابت روزانه</h4>
-                    <ul id="adminIncomesList"></ul>
-                    <h5>ثبت درآمد جدید:</h5>
-                    <input type="text" id="newIncomeSource" placeholder="منبع درآمد (مثال: چاه نفت شماره ۳)">
-                    <input type="number" id="newIncomeAmount" placeholder="مبلغ درآمد روزانه">
-                    <button class="btn-submit" onclick="addIncome()">افزودن درآمد روزانه</button>
-                </div>
+        <!-- نظارت بر بیانیه‌ها -->
+        <section id="statementsPane" class="pane">
+            <h3>آخرین بیانیه‌های صادر شده جهت پایش و نظارت</h3>
+            <div id="adminStatementsList" style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem;"></div>
+        </section>
+    </main>
 
-                <div class="card">
-                    <h4>مدیریت تجهیزات و دارایی‌ها</h4>
-                    <ul id="adminAssetsList"></ul>
-                    <h5>تغییر دارایی:</h5>
-                    <select id="assetProductSelect"></select>
-                    <input type="number" id="assetQty" placeholder="تعداد جدید دارایی">
-                    <button class="btn-submit" onclick="setAsset()">بروزرسانی تجهیزات</button>
+    <!-- مودال ویرایش فیلدهای کشور -->
+    <div id="editCountryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <div class="card" style="width:90%; max-width:650px; max-height:85vh; overflow-y:auto; background:var(--card-bg); border:1px solid var(--border);">
+            <h3 style="color:var(--accent); margin-bottom:1rem;" id="editModalTitle">ویرایش جزئیات کشور</h3>
+            
+            <input type="hidden" id="editCountryId">
+            
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap:0.5rem;">
+                <div class="form-group">
+                    <label>بودجه (دلار)</label>
+                    <input type="number" id="editCountryBudget" class="form-control">
                 </div>
-
-                <div class="card">
-                    <h4>بررسی سناریوهای دریافتی کشور</h4>
-                    <div id="adminScenariosList"></div>
+                <div class="form-group">
+                    <label>امتیاز کل</label>
+                    <input type="number" id="editCountryScore" class="form-control">
                 </div>
-
-                <div class="card">
-                    <h4>چت مستقیم ادمین با این کشور</h4>
-                    <div id="adminChatBox" class="chat-box"></div>
-                    <div style="display:flex;">
-                        <input type="text" id="adminMsgInput" placeholder="پیام خود را بنویسید...">
-                        <button class="btn-submit" style="width:100px; margin-right:10px;" onclick="sendChatToCountry()">ارسال</button>
-                    </div>
+                <div class="form-group">
+                    <label>درآمد روزانه (دلار)</label>
+                    <input type="number" id="editCountryDailyIncome" class="form-control">
                 </div>
+                <div class="form-group">
+                    <label>امنیت مرزها (٪)</label>
+                    <input type="number" id="editCountrySecurity" class="form-control" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>رضایت عمومی (٪)</label>
+                    <input type="number" id="editCountrySatisfaction" class="form-control" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>فشار تحریم (٪)</label>
+                    <input type="number" id="editCountryPressure" class="form-control" min="0" max="100">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>توضیح شاخص امنیت</label>
+                <input type="text" id="editCountrySecurityDesc" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>توضیح شاخص رضایت</label>
+                <input type="text" id="editCountrySatisfactionDesc" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>توضیح شاخص فشار</label>
+                <input type="text" id="editCountryPressureDesc" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>مصوبات مجلس و رول کشور</label>
+                <textarea id="editCountryParliament" class="form-control" rows="3"></textarea>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
+                <button class="btn btn-secondary" onclick="closeEditModal()" style="background:#1e293b; color:#fff;">انصراف</button>
+                <button class="btn btn-success" onclick="saveCountryChanges()">ذخیره تغییرات</button>
             </div>
         </div>
     </div>
 
-    <!-- تب مدیریت اخبار -->
-    <div id="newsTab" class="tab-content">
-        <div class="grid-admin">
-            <div>
-                <h3>انتشار خبر فوری جدید</h3>
-                <div class="card">
-                    <input type="text" id="newsTitle" placeholder="عنوان خبر">
-                    <textarea id="newsContent" rows="5" placeholder="شرح کامل رویدادهای جهانی..."></textarea>
-                    <input type="text" id="newsImage" placeholder="آدرس تصویر خبر (اختیاری)">
-                    <button class="btn-submit" onclick="publishNews()">انتشار خبر در کل جهان</button>
-                </div>
-            </div>
-            <div>
-                <h3>اخبار منتشر شده قبلی</h3>
-                <div id="newsList"></div>
-            </div>
-        </div>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://wyrzpsqwmkenhgivlhme.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_A1b9I9weZVdu2Ure-vYqfA_VKlVvBbj";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <!-- تب مدیریت بیانیه‌ها -->
-    <div id="statementsTab" class="tab-content">
-        <h3>نظارت بر بیانیه‌های منتشر شده عمومی</h3>
-        <div id="statementsList" class="grid-admin"></div>
-    </div>
-</div>
+        window.onload = async function() {
+            await verifyAdminSession();
+        };
 
-<script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        async function verifyAdminSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert("شما وارد حساب خود نشده‌اید.");
+                window.location.href = "index.html";
+                return;
+            }
 
-    const { createClient } = window.supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: adminData, error } = await supabase
+                .from('app_admins')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
 
-    let selectedCountryId = null;
+            if (error || !adminData) {
+                alert("دسترسی غیرمجاز! شما ادمین نیستید.");
+                window.location.href = "index.html";
+                return;
+            }
 
-    function escapeHTML(str) {
-        if (!str) return '';
-        return str.replace(/[&<>'"]/g, 
-            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-        );
-    }
+            document.getElementById('adminEmail').textContent = `ادمین: ${session.user.email}`;
+            await loadPaneData('countries');
+        }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        checkAdminAuth();
-    });
+        async function loadPaneData(pane) {
+            if (pane === 'countries') {
+                const { data } = await supabase.from('countries').select('*').order('name', { ascending: true });
+                const tbody = document.getElementById('countriesTableBody');
+                tbody.innerHTML = '';
+                (data || []).forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.code}</td>
+                        <td>${Number(c.budget).toLocaleString('fa-IR')} $</td>
+                        <td>${c.score}</td>
+                        <td>${c.security}٪</td>
+                        <td style="color:${c.online ? '#10b981' : '#ef4444'}">${c.online ? 'آنلاین' : 'آفلاین'}</td>
+                        <td>
+                            <button class="btn" style="padding:0.2rem 0.6rem; font-size:0.8rem;" onclick="openEditModal('${c.id}')">ویرایش جزئیات</button>
+                            <button class="btn btn-success" style="padding:0.2rem 0.6rem; font-size:0.8rem; background:#3b82f6;" onclick="openCountryChat('${c.id}', '${c.name}')">چت کشور</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else if (pane === 'scenarios') {
+                const { data } = await supabase.from('scenarios').select('*, countries(name)').order('created_at', { ascending: false });
+                const list = document.getElementById('scenariosList');
+                list.innerHTML = '';
+                if((data || []).length === 0) {
+                    list.innerHTML = '<p style="color:var(--text-muted);">هیچ سناریویی ارسال نشده است.</p>';
+                }
+                (data || []).forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:between; border-bottom:1px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+                            <strong>فرستنده: ${s.countries?.name || 'نامشخص'}</strong>
+                            <span style="font-size:0.8rem; color:var(--text-muted); margin-right:auto;">${new Date(s.created_at).toLocaleString('fa-IR')}</span>
+                        </div>
+                        <h4>عنوان: ${s.title}</h4>
+                        <p style="margin: 0.5rem 0;">شرح: ${s.text}</p>
+                        <div style="margin-top:1rem;">
+                            <label>پاسخ رسمی ادمین به رول:</label>
+                            <textarea id="resp_${s.id}" class="form-control" rows="2" placeholder="متن پاسخ...">${s.response || ''}</textarea>
+                            <button class="btn btn-success" style="padding:0.3rem 1rem;" onclick="submitScenarioResponse('${s.id}')">ارسال پاسخ و تأیید سناریو</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            } else if (pane === 'news') {
+                const { data } = await supabase.from('news').select('*').order('created_at', { ascending: false });
+                const list = document.getElementById('adminNewsList');
+                list.innerHTML = '';
+                (data || []).forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.style.marginBottom = '1rem';
+                    div.innerHTML = `
+                        <h5>${n.title}</h5>
+                        <p style="font-size:0.9rem; color:var(--text-muted);">${n.content}</p>
+                        <button class="btn" style="padding:0.2rem 0.6rem; font-size:0.8rem; margin-top:0.5rem;" onclick="deleteNews('${n.id}')">حذف خبر</button>
+                    `;
+                    list.appendChild(div);
+                });
+            } else if (pane === 'statements') {
+                const { data } = await supabase.from('statements').select('*').order('created_at', { ascending: false });
+                const list = document.getElementById('adminStatementsList');
+                list.innerHTML = '';
+                (data || []).forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <p><strong>کشور: ${s.country_name}</strong> - ${new Date(s.created_at).toLocaleString('fa-IR')}</p>
+                        <p style="margin: 0.5rem 0;">${s.text}</p>
+                        <button class="btn" style="padding:0.2rem 0.6rem; font-size:0.8rem;" onclick="deleteStatement('${s.id}')">حذف بیانیه تخلف</button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
 
-    async function checkAdminAuth() {
-        const { data: { user } } = await client.auth.getUser();
-        if (!user) {
+        // ایجاد کشور جدید
+        async function createCountry() {
+            const name = document.getElementById('newCountryName').value.trim();
+            const code = document.getElementById('newCountryCode').value.trim().toUpperCase();
+            const userId = document.getElementById('newCountryUserId').value.trim() || null;
+
+            if(!name || !code) return alert('نام و کد کشور الزامی است.');
+
+            const { error } = await supabase.from('countries').insert({
+                name: name,
+                code: code,
+                auth_user_id: userId
+            });
+
+            if(error) return alert("خطا در ایجاد کشور: " + error.message);
+            alert("کشور با موفقیت در دیتابیس Supabase ایجاد شد.");
+            document.getElementById('newCountryName').value = '';
+            document.getElementById('newCountryCode').value = '';
+            document.getElementById('newCountryUserId').value = '';
+            await loadPaneData('countries');
+        }
+
+        // ویرایش اطلاعات کشور
+        async function openEditModal(countryId) {
+            const { data, error } = await supabase.from('countries').select('*').eq('id', countryId).single();
+            if(error || !data) return alert('داده‌های کشور یافت نشد.');
+
+            document.getElementById('editCountryId').value = data.id;
+            document.getElementById('editModalTitle').textContent = `ویرایش پارامترهای ${data.name}`;
+            document.getElementById('editCountryBudget').value = data.budget;
+            document.getElementById('editCountryScore').value = data.score;
+            document.getElementById('editCountryDailyIncome').value = data.daily_income;
+            document.getElementById('editCountrySecurity').value = data.security;
+            document.getElementById('editCountrySatisfaction').value = data.satisfaction;
+            document.getElementById('editCountryPressure').value = data.pressure;
+            document.getElementById('editCountrySecurityDesc').value = data.security_desc;
+            document.getElementById('editCountrySatisfactionDesc').value = data.satisfaction_desc;
+            document.getElementById('editCountryPressureDesc').value = data.pressure_desc;
+            document.getElementById('editCountryParliament').value = data.parliament;
+
+            document.getElementById('editCountryModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editCountryModal').style.display = 'none';
+        }
+
+        async function saveCountryChanges() {
+            const id = document.getElementById('editCountryId').value;
+            const budget = document.getElementById('editCountryBudget').value;
+            const score = document.getElementById('editCountryScore').value;
+            const daily = document.getElementById('editCountryDailyIncome').value;
+            const sec = document.getElementById('editCountrySecurity').value;
+            const sat = document.getElementById('editCountrySatisfaction').value;
+            const press = document.getElementById('editCountryPressure').value;
+            const secD = document.getElementById('editCountrySecurityDesc').value;
+            const satD = document.getElementById('editCountrySatisfactionDesc').value;
+            const pressD = document.getElementById('editCountryPressureDesc').value;
+            const parl = document.getElementById('editCountryParliament').value;
+
+            const { error } = await supabase.from('countries').update({
+                budget: budget,
+                score: score,
+                daily_income: daily,
+                security: sec,
+                satisfaction: sat,
+                pressure: press,
+                security_desc: secD,
+                satisfaction_desc: satD,
+                pressure_desc: pressD,
+                parliament: parl
+            }).eq('id', id);
+
+            if(error) return alert("خطا در ذخیره‌سازی داده‌های سرور: " + error.message);
+            alert("تغییرات با موفقیت در سرور اعمال شد.");
+            closeEditModal();
+            await loadPaneData('countries');
+        }
+
+        // پاسخ به سناریو
+        async function submitScenarioResponse(id) {
+            const resp = document.getElementById(`resp_${id}`).value.trim();
+            if(!resp) return alert('پاسخ را بنویسید.');
+
+            const { error } = await supabase
+                .from('scenarios')
+                .update({ response: resp, status: 'answered' })
+                .eq('id', id);
+
+            if(error) return alert("خطا در ثبت پاسخ سناریو: " + error.message);
+            alert("پاسخ و نتیجه سناریو ارسال شد.");
+            await loadPaneData('scenarios');
+        }
+
+        // انتشار اخبار
+        async function publishNews() {
+            const title = document.getElementById('newsTitleInput').value.trim();
+            const content = document.getElementById('newsContentInput').value.trim();
+            const tagsInput = document.getElementById('newsTagsInput').value;
+
+            if(!title || !content) return alert('تیتر و متن خبر ضروری است.');
+            const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+            const { error } = await supabase.from('news').insert({
+                title: title,
+                content: content,
+                tags: tags,
+                author: 'admin'
+            });
+
+            if(error) return alert("خطا در ثبت خبر: " + error.message);
+            alert("خبر منتشر شد.");
+            document.getElementById('newsTitleInput').value = '';
+            document.getElementById('newsContentInput').value = '';
+            document.getElementById('newsTagsInput').value = '';
+            await loadPaneData('news');
+        }
+
+        async function deleteNews(id) {
+            const { error } = await supabase.from('news').delete().eq('id', id);
+            if (error) return alert("خطا در حذف خبر");
+            await loadPaneData('news');
+        }
+
+        async function deleteStatement(id) {
+            const { error } = await supabase.from('statements').delete().eq('id', id);
+            if (error) return alert("خطا در حذف بیانیه");
+            await loadPaneData('statements');
+        }
+
+        // خروج ادمین
+        async function logout() {
+            await supabase.auth.signOut();
             window.location.href = "index.html";
-            return;
         }
 
-        const { data: isAdmin, error } = await client.from('app_admins').select('*').eq('user_id', user.id).maybeSingle();
-        if (error || !isAdmin) {
-            alert("دسترسی غیرمجاز! این حساب کاربری دسترسی مدیریت ندارد.");
-            logout();
-            return;
+        function switchPane(paneId) {
+            document.querySelectorAll('.pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(paneId + 'Pane').classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            const titles = {
+                'countries': 'مدیریت کشورها',
+                'scenarios': 'سناریوهای دریافتی از کشورها',
+                'news': 'سیستم اطلاع‌رسانی و اخبار جهانی',
+                'statements': 'نظارت بر بیانیه‌های رسمی کشورها'
+            };
+            document.getElementById('paneTitle').textContent = titles[paneId] || 'پنل مدیریت';
+            
+            loadPaneData(paneId);
         }
 
-        loadCountriesList();
-        loadNews();
-        loadStatements();
-        loadShopProductsForSelect();
-    }
-
-    async function loadCountriesList() {
-        const { data: list } = await client.from('countries').select('*').order('name');
-        const container = document.getElementById("countriesList");
-        if (!list) return;
-
-        container.innerHTML = list.map(c => `
-            <div class="card" style="cursor:pointer;" onclick="openCountryPanel('${c.id}')">
-                <h4>${escapeHTML(c.flag_emoji)} ${escapeHTML(c.name)}</h4>
-                <p>بودجه: $${Number(c.budget).toLocaleString()} | امتیاز: ${c.points}</p>
-            </div>
-        `).join('');
-    }
-
-    async function openCountryPanel(countryId) {
-        selectedCountryId = countryId;
-        document.getElementById("countryDetailsPanel").style.display = "block";
-        
-        const { data: country } = await client.from('countries').select('*').eq('id', countryId).single();
-        if (!country) return;
-
-        document.getElementById("panelCountryTitle").innerText = `مدیریت کشور: ${escapeHTML(country.name)}`;
-        document.getElementById("editBudget").value = country.budget;
-        document.getElementById("editPoints").value = country.points;
-        document.getElementById("editStatus").value = country.status;
-
-        loadCountryIncomes();
-        loadCountryAssets();
-        loadCountryScenarios();
-        loadCountryChat();
-    }
-
-    async function saveCountryInfo() {
-        if (!selectedCountryId) return;
-        const budget = parseFloat(document.getElementById("editBudget").value);
-        const points = parseInt(document.getElementById("editPoints").value);
-        const status = document.getElementById("editStatus").value.trim();
-
-        const { error } = await client.from('countries').update({
-            budget,
-            points,
-            status
-        }).eq('id', selectedCountryId);
-
-        if (error) {
-            alert("خطا در ذخیره‌سازی: " + error.message);
-        } else {
-            alert("تغییرات با موفقیت ذخیره شد.");
-            loadCountriesList();
-        }
-    }
-
-    async function loadCountryIncomes() {
-        const { data: incomes } = await client.from('incomes').select('*').eq('country_id', selectedCountryId);
-        const container = document.getElementById("adminIncomesList");
-        if (!incomes) return;
-        container.innerHTML = incomes.map(i => `
-            <li>
-                <strong>${escapeHTML(i.source_name)}</strong>: $${Number(i.amount).toLocaleString()} روزانه
-                <button class="btn-delete" style="width:auto; padding:2px 6px; margin:0;" onclick="deleteIncome('${i.id}')">حذف</button>
-            </li>
-        `).join('');
-    }
-
-    async function addIncome() {
-        const source = document.getElementById("newIncomeSource").value.trim();
-        const amount = parseFloat(document.getElementById("newIncomeAmount").value);
-        if (!source || isNaN(amount)) {
-            alert("اطلاعات درآمد معتبر نیست.");
-            return;
-        }
-
-        const { error } = await client.from('incomes').insert({
-            country_id: selectedCountryId,
-            source_name: source,
-            amount: amount
-        });
-
-        if (error) {
-            alert("خطا در ثبت درآمد: " + error.message);
-        } else {
-            document.getElementById("newIncomeSource").value = "";
-            document.getElementById("newIncomeAmount").value = "";
-            loadCountryIncomes();
-        }
-    }
-
-    async function deleteIncome(incomeId) {
-        if (!confirm("آیا مایل به حذف این درآمد هستید؟")) return;
-        await client.from('incomes').delete().eq('id', incomeId);
-        loadCountryIncomes();
-    }
-
-    async function loadShopProductsForSelect() {
-        const { data: products } = await client.from('shop_products').select('*');
-        const select = document.getElementById("assetProductSelect");
-        if (!products) return;
-        select.innerHTML = products.map(p => `
-            <option value="${p.id}">${escapeHTML(p.name)}</option>
-        `).join('');
-    }
-
-    async function loadCountryAssets() {
-        const { data: assets } = await client.from('country_assets').select('*, shop_products(name)').eq('country_id', selectedCountryId);
-        const container = document.getElementById("adminAssetsList");
-        if (!assets) return;
-        container.innerHTML = assets.map(a => `
-            <li>${escapeHTML(a.shop_products?.name || 'نامشخص')}: ${a.quantity} عدد</li>
-        `).join('');
-    }
-
-    async function setAsset() {
-        const productId = document.getElementById("assetProductSelect").value;
-        const qty = parseInt(document.getElementById("assetQty").value);
-        if (!productId || isNaN(qty)) return;
-
-        const { error } = await client.from('country_assets').upsert({
-            country_id: selectedCountryId,
-            product_id: productId,
-            quantity: qty
-        }, { onConflict: 'country_id,product_id' });
-
-        if (error) {
-            alert("خطا در بروزرسانی دارایی: " + error.message);
-        } else {
-            alert("دارایی با موفقیت بروزرسانی شد.");
-            loadCountryAssets();
-        }
-    }
-
-    async function loadCountryScenarios() {
-        const { data: list } = await client.from('scenarios').select('*').eq('country_id', selectedCountryId).order('created_at', { ascending: false });
-        const container = document.getElementById("adminScenariosList");
-        if (!list) return;
-
-        container.innerHTML = list.map(s => `
-            <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:4px;">
-                <h5>${escapeHTML(s.title)} [وضعیت: ${escapeHTML(s.status)}]</h5>
-                <p>${escapeHTML(s.description)}</p>
-                
-                <textarea id="resp_${s.id}" placeholder="پاسخ ادمین به سناریو...">${escapeHTML(s.admin_response || '')}</textarea>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-submit" onclick="respondScenario('${s.id}', 'approved')">تأیید و ثبت پاسخ</button>
-                    <button class="btn-delete" onclick="respondScenario('${s.id}', 'rejected')">رد کردن</button>
-                    <button class="btn-delete" style="background:#555;" onclick="deleteScenario('${s.id}')">حذف سناریو</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async function respondScenario(scenarioId, status) {
-        const responseText = document.getElementById(`resp_${scenarioId}`).value.trim();
-        const { error } = await client.from('scenarios').update({
-            status: status,
-            admin_response: responseText
-        }).eq('id', scenarioId);
-
-        if (error) {
-            alert("خطا در ثبت وضعیت: " + error.message);
-        } else {
-            alert("سناریو با موفقیت پاسخ‌دهی شد.");
-            loadCountryScenarios();
-        }
-    }
-
-    async function deleteScenario(scenarioId) {
-        if (!confirm("آیا مایل به حذف کل این سناریو هستید؟")) return;
-        await client.from('scenarios').delete().eq('id', scenarioId);
-        loadCountryScenarios();
-    }
-
-    async function loadCountryChat() {
-        const { data: messages } = await client.from('admin_chats').select('*').eq('country_id', selectedCountryId).order('created_at', { ascending: true });
-        const container = document.getElementById("adminChatBox");
-        if (!messages) return;
-
-        container.innerHTML = messages.map(m => `
-            <div class="chat-msg ${m.sender_role === 'admin' ? 'me' : 'other'}">
-                <strong>${m.sender_role === 'admin' ? 'ادمین ارشد' : 'کشور مخاطب'}:</strong>
-                <p style="margin:4px 0 0 0;">${escapeHTML(m.message)}</p>
-            </div>
-        `).join('');
-        container.scrollTop = container.scrollHeight;
-    }
-
-    async function sendChatToCountry() {
-        const text = document.getElementById("adminMsgInput").value.trim();
-        if (!text || !selectedCountryId) return;
-
-        const { error } = await client.from('admin_chats').insert({
-            country_id: selectedCountryId,
-            message: text,
-            sender_role: 'admin'
-        });
-
-        if (error) {
-            alert("خطا در ارسال پیام: " + error.message);
-        } else {
-            document.getElementById("adminMsgInput").value = "";
-            loadCountryChat();
-        }
-    }
-
-    async function publishNews() {
-        const title = document.getElementById("newsTitle").value.trim();
-        const content = document.getElementById("newsContent").value.trim();
-        const imageUrl = document.getElementById("newsImage").value.trim();
-
-        if (!title || !content) {
-            alert("عنوان و متن خبر الزامی است.");
-            return;
-        }
-
-        const { error } = await client.from('news').insert({
-            title,
-            content,
-            image_url: imageUrl || null
-        });
-
-        if (error) {
-            alert("خطا در ثبت خبر: " + error.message);
-        } else {
-            alert("خبر فوری با موفقیت در جهان منتشر شد.");
-            document.getElementById("newsTitle").value = "";
-            document.getElementById("newsContent").value = "";
-            document.getElementById("newsImage").value = "";
-            loadNews();
-        }
-    }
-
-    async function loadNews() {
-        const { data: list } = await client.from('news').select('*').order('created_at', { ascending: false });
-        const container = document.getElementById("newsList");
-        if (!list) return;
-
-        container.innerHTML = list.map(n => `
-            <div class="card">
-                <h4>${escapeHTML(n.title)}</h4>
-                <p>${escapeHTML(n.content)}</p>
-                <button class="btn-delete" onclick="deleteNews('${n.id}')">حذف خبر</button>
-            </div>
-        `).join('');
-    }
-
-    async function deleteNews(newsId) {
-        if (!confirm("آیا مایل به حذف این خبر هستید؟")) return;
-        await client.from('news').delete().eq('id', newsId);
-        loadNews();
-    }
-
-    async function loadStatements() {
-        const { data: list } = await client.from('statements').select('*, countries(name)').order('created_at', { ascending: false });
-        const container = document.getElementById("statementsList");
-        if (!list) return;
-
-        container.innerHTML = list.map(s => `
-            <div class="card">
-                <h4>${escapeHTML(s.title)}</h4>
-                <p>صادرکننده: ${escapeHTML(s.countries?.name || 'نامشخص')}</p>
-                <p>${escapeHTML(s.content)}</p>
-                <button class="btn-delete" onclick="deleteStatement('${s.id}')">حذف و سانسور بیانیه</button>
-            </div>
-        `).join('');
-    }
-
-    async function deleteStatement(statId) {
-        if (!confirm("آیا مایل به حذف و سانسور این بیانیه عمومی هستید؟")) return;
-        await client.from('statements').delete().eq('id', statId);
-        loadStatements();
-    }
-
-    function switchTab(tabId) {
-        document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
-        
-        document.getElementById(tabId).classList.add("active");
-        event.currentTarget.classList.add("active");
-    }
-
-    async function logout() {
-        await client.auth.signOut();
-        window.location.href = "index.html";
-    }
-</script>
+        window.switchPane = switchPane;
+        window.createCountry = createCountry;
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        window.saveCountryChanges = saveCountryChanges;
+        window.submitScenarioResponse = submitScenarioResponse;
+        window.publishNews = publishNews;
+        window.deleteNews = deleteNews;
+        window.deleteStatement = deleteStatement;
+        window.logout = logout;
+    </script>
 </body>
 </html>
